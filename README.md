@@ -1,2 +1,2 @@
 # Integration
-Integration scripts and tests for Company 2
+Integration scripts and tests maintained by algs2
