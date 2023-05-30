@@ -1,0 +1,16 @@
+{
+	"urls": {
+		"company1":{
+			"frontend": "",
+			"backend": "",
+			"algs1": "",
+			"algs2": ""
+		},
+		"company2": {
+			"frontend": "git@github.com:SENG-499-Company2-B01/Frontend.git",
+			"backend": "git@github.com:SENG-499-Company2-B01/Backend.git",
+			"algs1": "git@github.com:SENG-499-Company2-B01/Algs1.git",
+			"algs2": "git@github.com:SENG-499-Company2-B01/Algs2.git"
+		}
+	}
+}
