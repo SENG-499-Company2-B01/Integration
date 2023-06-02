@@ -1,11 +1,13 @@
-FROM alpine:3.18.0
+FROM docker:dind
 
 RUN apk update && \
-    apk add --no-cache git docker jq docker-cli docker-compose
+    apk add --no-cache git jq
 
 WORKDIR /app
-
 COPY . /app
-RUN chmod +x ./clone.sh ./build.sh
+
+RUN chmod +x ./clone.sh ./build.sh ./runfrom.sh ./killall.sh
 RUN ./clone.sh
-CMD ./build.sh
+RUN ./build.sh
+
+CMD ./runfrom.sh 2 2 2 2
