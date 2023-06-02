@@ -1,0 +1,55 @@
+{
+	"company1": {
+		"frontend": {
+			"url": "",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		},
+		"backend": {
+			"url": "",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		},
+		"algs1": {
+			"url": "",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		},
+		"algs2": {
+			"url": "",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		}
+	},
+	"company2": {
+		"frontend": {
+			"url": "https://github.com/SENG-499-Company2-B01/Frontend.git",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		},
+		"backend": {
+			"url": "https://github.com/SENG-499-Company2-B01/Backend.git",
+			"env": "c2backend.env",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		},
+		"algs1": {
+			"url": "https://github.com/SENG-499-Company2-B01/Algs1.git",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		},
+		"algs2": {
+			"url": "https://github.com/SENG-499-Company2-B01/Algs2.git",
+			"build": "docker-compose build",
+			"run": "docker-compose up -d",
+			"kill": "docker-compose down"
+		}
+	}
+}
