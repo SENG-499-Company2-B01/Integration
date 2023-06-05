@@ -6,8 +6,8 @@ RUN apk update && \
 WORKDIR /app
 COPY . /app
 
-RUN chmod +x ./clone.sh ./build.sh ./runfrom.sh ./killall.sh
-RUN ./clone.sh
-RUN ./build.sh
+RUN chmod +x ./shell/clone.sh ./shell/build.sh ./shell/runfrom.sh ./shell/killall.sh
+RUN ./shell/clone.sh
+RUN ./shell/build.sh
 
-CMD ./runfrom.sh 2 2 2 2
+CMD ./shell/runfrom.sh 2 2 2 2
