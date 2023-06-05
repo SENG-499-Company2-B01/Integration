@@ -20,3 +20,4 @@ do
 done
 
 echo "Containers Eliminated!"
+exit 0

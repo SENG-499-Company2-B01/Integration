@@ -35,3 +35,4 @@ run_repo() {
 [ "$algs2" -eq 2 ] && run_repo "algs2" "company2"
 
 echo "Completed Starting Containers!"
+exit 0

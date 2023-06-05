@@ -20,3 +20,4 @@ do
 done
 
 echo "Building Complete!"
+exit 0

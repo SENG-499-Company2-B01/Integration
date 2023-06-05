@@ -23,3 +23,4 @@ do
 done
 
 echo "Cloning Complete!"
+exit 0
