@@ -17,7 +17,7 @@ def run_from(args):
     subprocess.run([cmd])
 
 def kill_all(args):
-    completed_process = subprocess.run(['killall.sh'])
+    subprocess.run(['killall.sh'])
 
 def test(args):
     print("This has not been implemented yet")
