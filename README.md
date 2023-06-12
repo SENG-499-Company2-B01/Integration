@@ -18,4 +18,4 @@ More features coming soon...
 ### Selenium
 Selenium Webdriver is used to test the integration between our backend and the UI. Individual test cases can be found in the `/test/test_cases` directory, and they reference selenium page objects in `/test/page.py`.
 
-Any selenium element locators should be contained within the page objects in order to ensure easily readable test cases.
+Any selenium element locators should be contained within the `locators.py` file and accessed via the page objects, not directly from the test cases in order to ensure easily readable tests.
