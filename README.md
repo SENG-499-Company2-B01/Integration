@@ -12,3 +12,10 @@ Then, start the container with `docker-compose up`.
 This will start the company 2 containers on your host machine.
 
 More features coming soon...
+
+## Testing
+
+### Selenium
+Selenium Webdriver is used to test the integration between our backend and the UI. Individual test cases can be found in the `/test/test_cases` directory, and they reference selenium page objects in `/test/page.py`.
+
+Any selenium element locators should be contained within the page objects in order to ensure easily readable test cases.
