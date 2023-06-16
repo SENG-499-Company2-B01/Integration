@@ -1,13 +1,15 @@
 FROM docker:dind
 
 RUN apk update && \
-    apk add --no-cache git jq
+    apk add --no-cache git jq python3
+RUN python3 -m ensurepip
+RUN pip3 install --no-cache --upgrade pip setuptools
 
 WORKDIR /app
-COPY . /app
+COPY . .
+RUN pip3 install --no-cache -r requirements.txt
 
-RUN chmod +x ./clone.sh ./build.sh ./runfrom.sh ./killall.sh
-RUN ./clone.sh
-RUN ./build.sh
+RUN chmod +x ./shell/clone.sh ./shell/build.sh ./shell/runfrom.sh ./shell/killall.sh
+RUN ./shell/clone.sh
 
-CMD ./runfrom.sh 2 2 2 2
+CMD python3 ./integration.py
