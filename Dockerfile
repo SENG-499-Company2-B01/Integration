@@ -5,6 +5,12 @@ RUN apk update && \
 RUN python3 -m ensurepip
 RUN pip3 install --no-cache --upgrade pip setuptools
 
+RUN mkdir -p /root/.ssh/
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+COPY ./ssh /root/.ssh
+RUN chmod 600 /root/.ssh/*
+
 WORKDIR /app
 COPY . .
 RUN pip3 install --no-cache -r requirements.txt

@@ -9,6 +9,8 @@ do
         command=$(jq -r ".${company}.${repo}.build" /app/config.json)
         repodir="${company}/${repo}/"
 
+        echo "Building ${repo} in ${company}..."
+
         if [ -d "$repodir" ]; then
             eval "cd ${repodir}"
             eval $command
