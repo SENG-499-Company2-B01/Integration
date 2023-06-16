@@ -12,13 +12,13 @@ run_repo() {
     repo=$1
     company=$2
 
-    command=$(jq -r ".${company}.${repo}.run" config.json)
+    command=$(jq -r ".${company}.${repo}.run" /app/config.json)
     repodir="${company}/${repo}/"
 
     if [ -d "$repodir" ]; then
         eval "cd ${repodir}"
         eval $command
-        cd ../..
+        cd ../../
     else
         echo "Could not find ${repo} in ${company}. Skipping..."
     fi
