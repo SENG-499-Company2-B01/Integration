@@ -63,6 +63,7 @@ def parse_input(user_input):
         help()
 
 def main():
+    subprocess.run(["./shell/build.sh"], cwd="/app")
      # Run company 2 containers by default
     subprocess.run(["./shell/runfrom.sh", "2", "2", "2", "2"], cwd="/app")
 

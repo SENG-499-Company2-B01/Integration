@@ -11,6 +11,5 @@ RUN pip3 install --no-cache -r requirements.txt
 
 RUN chmod +x ./shell/clone.sh ./shell/build.sh ./shell/runfrom.sh ./shell/killall.sh
 RUN ./shell/clone.sh
-RUN ./shell/build.sh
 
 CMD python3 ./integration.py
