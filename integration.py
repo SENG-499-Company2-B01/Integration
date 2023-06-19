@@ -1,13 +1,18 @@
 import subprocess
 
+# Frontend, Backend, Algs1, Algs2
+# 0 means neither, 1 means company 1 running, 2 means company 2 running
+running = [2, 2, 2, 2]
+
 def help():
     print("""
     Available commands:
-    1. run [Company] - Runs all four modules from a given company. Provide 1 or 2 for the company.
-    2. runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs modules from each given company. For each module, provide 1 or 2 to indicate which company to run from.
-    3. exit - Terminate all running containers and exit the program.
-    4. test - Test the currently running containers. This has not been implemented yet.
-    5. testall - Run full test suite. This has not been implemented yet.
+    - run [Company] - Runs all four modules from a given company. Provide 1 or 2 for the company.
+    - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs modules from each given company. For each module, provide 1 or 2 to indicate which company to run from.
+    - swap [Module] - Swaps the running module from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which module to swap.
+    - exit - Terminate all running containers and exit the program.
+    - test - Test the currently running containers. This has not been implemented yet.
+    - testall - Run full test suite. This has not been implemented yet.
     """)
 
 def run(company):
@@ -15,6 +20,7 @@ def run(company):
         print("Invalid company number provided")
         return 1
     subprocess.run(["./shell/runfrom.sh", company, company, company, company], cwd="/app")
+    running = [company, company, company, company]
 
 def run_from(frontend_company, backend_company, algs1_company, algs2_company):
     for module in [frontend_company, backend_company, algs1_company, algs2_company]:
@@ -22,9 +28,26 @@ def run_from(frontend_company, backend_company, algs1_company, algs2_company):
             print("Invalid company number provided")
             return 1
     subprocess.run(["./shell/runfrom.sh", frontend_company, backend_company, algs1_company, algs2_company], cwd="/app")
+    running = [frontend_company, backend_company, algs1_company, algs2_company]
+
+def swap_module(module):
+    # If company 1 is running, run company 2 and visa versa
+    # If neither is running for the given module, run company 2
+    if module[0] == 'f':
+        print("")
+    elif module[0] == 'b':
+        print("")
+    elif module[-1] == '1':
+        print("")
+    elif module[-1] == '2':
+        print("")
+    else:
+        print("Invalid")
+    print("This has not been implemented yet")
 
 def kill_all():
     subprocess.run(['./shell/killall.sh'], cwd="/app")
+    running = [0, 0, 0, 0]
 
 def test():
     print("This has not been implemented yet")
@@ -52,6 +75,11 @@ def parse_input(user_input):
             print("For each module provide a 1 or 2 to indicate which company to run from.")
         else:
             run_from(split_input[1], split_input[2], split_input[3], split_input[4])
+    elif command == 'swap':
+        if len(split_input) != 2:
+            print("Usage: swap 'frontend' or 'backend' or 'algs1' or 'algs2'")
+        else:
+            swap_module(split_input[1])
     elif command == 'exit':
         kill_all()
         exit(0)
