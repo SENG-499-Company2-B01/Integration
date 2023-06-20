@@ -34,8 +34,6 @@ def run_from(frontend_company, backend_company, algs1_company, algs2_company):
     subprocess.run(["./shell/runfrom.sh", frontend_company, backend_company, algs1_company, algs2_company], cwd=script_dir)
     running = [frontend_company, backend_company, algs1_company, algs2_company]
 
-    
-import subprocess
 
 def swap_module(module):
     global running, script_dir
