@@ -1,8 +1,10 @@
 import subprocess
+import os
 
 # Frontend, Backend, Algs1, Algs2
 # 0 means neither, 1 means company 1 running, 2 means company 2 running
 running = [2, 2, 2, 2]
+script_dir = os.path.dirname(os.path.realpath(__file__))
 
 def help():
     print("""
@@ -16,37 +18,62 @@ def help():
     """)
 
 def run(company):
+    global running, script_dir
     if not company in ['1', '2']:
         print("Invalid company number provided")
         return 1
-    subprocess.run(["./shell/runfrom.sh", company, company, company, company], cwd="/app")
+    subprocess.run(["./shell/runfrom.sh", company, company, company, company], cwd=script_dir)
     running = [company, company, company, company]
 
 def run_from(frontend_company, backend_company, algs1_company, algs2_company):
+    global running, script_dir
     for module in [frontend_company, backend_company, algs1_company, algs2_company]:
         if not module in ['1', '2']:
             print("Invalid company number provided")
             return 1
-    subprocess.run(["./shell/runfrom.sh", frontend_company, backend_company, algs1_company, algs2_company], cwd="/app")
+    subprocess.run(["./shell/runfrom.sh", frontend_company, backend_company, algs1_company, algs2_company], cwd=script_dir)
     running = [frontend_company, backend_company, algs1_company, algs2_company]
 
+    
+import subprocess
+
 def swap_module(module):
-    # If company 1 is running, run company 2 and visa versa
-    # If neither is running for the given module, run company 2
-    if module[0] == 'f':
-        print("")
-    elif module[0] == 'b':
-        print("")
-    elif module[-1] == '1':
-        print("")
-    elif module[-1] == '2':
-        print("")
+    global running, script_dir
+    
+    # Get the index of the module in the 'running' list
+    module_dict = {'frontend': 0, 'backend': 1, 'algs1': 2, 'algs2': 3}
+    module_index = module_dict.get(module)
+    
+    if module_index is None:
+        print("Invalid module. Please provide 'frontend', 'backend', 'algs1', or 'algs2'")
+        return
+
+    # Kill the currently running module
+    current_company = running[module_index]
+    if current_company in [1, 2]:
+        subprocess.run(["docker", "container", "stop", f"{module}_{current_company}"], cwd=script_dir)
+        subprocess.run(["docker", "container", "rm", f"{module}_{current_company}"], cwd=script_dir)
     else:
-        print("Invalid")
-    print("This has not been implemented yet")
+        print("Could not get the company of the running module... Not killing any modules")
+
+    # Determine the company to switch to
+    # If company 1 is running, switch to company 2 and vice versa
+    # If neither is running for the given module, run company 2
+    new_company = 1 if running[module_index] == 2 else 2
+
+    # Run the new module
+    subprocess.run(["./shell/runfrom.sh", str(new_company), str(new_company), str(new_company), str(new_company)], cwd=script_dir) 
+
+    # Update the 'running' list
+    running[module_index] = new_company
+
+    print(f"Switched {module} to company {new_company}")
+
+
 
 def kill_all():
-    subprocess.run(['./shell/killall.sh'], cwd="/app")
+    global script_dir
+    subprocess.run(['./shell/killall.sh'], cwd=script_dir)
     running = [0, 0, 0, 0]
 
 def test():
@@ -89,17 +116,47 @@ def parse_input(user_input):
         autotest_all()
     else:
         help()
+        
+        
+def check_and_clone():
+    global script_dir
+    # List of directories to check
+    dirs = [
+        './company1/frontend',
+        './company1/backend',
+        './company1/algs1',
+        './company1/algs2',
+        './company2/frontend',
+        './company2/backend',
+        './company2/algs1',
+        './company2/algs2',
+    ]
+    
+    for dir in dirs:
+        if not os.path.exists(os.path.join(script_dir, dir)):
+            print(f"Directory {dir} does not exist. Cloning...")
+            # Assuming clone.sh takes a directory as argument
+            result = subprocess.run(["./shell/clone.sh", dir], cwd=script_dir)
+            if result.returncode != 0:
+                print(f"Failed to clone into {dir}")
+
 
 def main():
-    subprocess.run(["./shell/build.sh"], cwd="/app")
-     # Run company 2 containers by default
-    subprocess.run(["./shell/runfrom.sh", "2", "2", "2", "2"], cwd="/app")
+    global script_dir
+
+    # Check and clone any missing directories
+    check_and_clone()
+
+    subprocess.run(["./shell/build.sh"], cwd=script_dir)
+    # Run company 2 containers by default
+    subprocess.run(["./shell/runfrom.sh", "2", "2", "2", "2"], cwd=script_dir)
 
     help()
 
     while True:
         user_input = input("Enter a command: ")
         parse_input(user_input)
+
 
 if __name__ == "__main__":
     main()
