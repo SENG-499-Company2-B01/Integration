@@ -1,155 +1,305 @@
+import json
 import subprocess
 import os
+import logging
 
-# Frontend, Backend, Algs1, Algs2
-# 0 means neither, 1 means company 1 running, 2 means company 2 running
-running = [2, 2, 2, 2]
-script_dir = os.path.dirname(os.path.realpath(__file__))
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def help():
-    print("""
-    Available commands:
-    - run [Company] - Runs all four modules from a given company. Provide 1 or 2 for the company.
-    - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs modules from each given company. For each module, provide 1 or 2 to indicate which company to run from.
-    - swap [Module] - Swaps the running module from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which module to swap.
-    - exit - Terminate all running containers and exit the program.
-    - test - Test the currently running containers. This has not been implemented yet.
-    - testall - Run full test suite. This has not been implemented yet.
-    """)
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.json')
 
-def run(company):
-    global running, script_dir
-    if not company in ['1', '2']:
-        print("Invalid company number provided")
-        return 1
-    subprocess.run(["./shell/runfrom.sh", company, company, company, company], cwd=script_dir)
-    running = [company, company, company, company]
+# Define the companies and their corresponding numbers
+COMPANIES = {
+    'company1': 1,
+    'company2': 2
+}
 
-def run_from(frontend_company, backend_company, algs1_company, algs2_company):
-    global running, script_dir
-    for module in [frontend_company, backend_company, algs1_company, algs2_company]:
-        if not module in ['1', '2']:
-            print("Invalid company number provided")
-            return 1
-    subprocess.run(["./shell/runfrom.sh", frontend_company, backend_company, algs1_company, algs2_company], cwd=script_dir)
-    running = [frontend_company, backend_company, algs1_company, algs2_company]
+services = {
+    'frontend': 0,
+    'backend': 0,
+    'algs1': 0,
+    'algs2': 0
+}
+
+def load_config():
+    try:
+        with open(CONFIG_FILE) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.exception(f"Failed to load config file: {e}")
+        return None
 
 
-def swap_module(module):
-    global running, script_dir
-    
-    # Get the index of the module in the 'running' list
-    module_dict = {'frontend': 0, 'backend': 1, 'algs1': 2, 'algs2': 3}
-    module_index = module_dict.get(module)
-    
-    if module_index is None:
-        print("Invalid module. Please provide 'frontend', 'backend', 'algs1', or 'algs2'")
+def execute_command(command, cwd):
+    try:
+        subprocess.run(command, cwd=cwd, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.exception(f"Failed to execute command '{command}' in {cwd}: {e}")
+        return False
+    return True
+
+
+def build_service(company, service):
+    config = load_config()
+    if config is None:
         return
 
-    # Kill the currently running module
-    current_company = running[module_index]
-    if current_company in [1, 2]:
-        subprocess.run(["docker", "container", "stop", f"{module}_{current_company}"], cwd=script_dir)
-        subprocess.run(["docker", "container", "rm", f"{module}_{current_company}"], cwd=script_dir)
+    build_command = config.get(company, {}).get(service, {}).get('build')
+    if build_command:
+        repo_dir = os.path.join(SCRIPT_DIR, company, service)
+
+        if os.path.exists(repo_dir):
+            if not execute_command(build_command, repo_dir):
+                logger.error(f"Failed to build {service} in {company}")
+        else:
+            logger.warning(f"Could not find {service} in {company}. Skipping build process.")
     else:
-        print("Could not get the company of the running module... Not killing any modules")
-
-    # Determine the company to switch to
-    # If company 1 is running, switch to company 2 and vice versa
-    # If neither is running for the given module, run company 2
-    new_company = 1 if running[module_index] == 2 else 2
-
-    # Run the new module
-    subprocess.run(["./shell/runfrom.sh", str(new_company), str(new_company), str(new_company), str(new_company)], cwd=script_dir) 
-
-    # Update the 'running' list
-    running[module_index] = new_company
-
-    print(f"Switched {module} to company {new_company}")
+        logger.warning(f"No build command found for {service} in {company}. Skipping build process.")
 
 
+def build_all():
+    logger.info("Building services...")
 
-def kill_all():
-    global script_dir
-    subprocess.run(['./shell/killall.sh'], cwd=script_dir)
-    running = [0, 0, 0, 0]
+    for company in COMPANIES:
+        for service in services:
+            build_service(company, service)
+
+    logger.info("Building complete!")
+
+
+def kill_service(service_name):
+    if service_name not in services:
+        logger.error(f"Invalid service name: {service_name}. Not killing any services.")
+        return
+
+    current_company = services[service_name]
+
+    if current_company in COMPANIES.values():
+        script_dir = os.getcwd()
+        stop_command = ["docker", "container", "stop", f"{service_name}_{current_company}"]
+        remove_command = ["docker", "container", "rm", f"{service_name}_{current_company}"]
+
+        if execute_command(stop_command, script_dir) and execute_command(remove_command, script_dir):
+            services[service_name] = 0
+        else:
+            logger.error(f"Failed to stop and remove Docker container {service_name}_{current_company}.")
+    else:
+        logger.info(f"No company is currently running the {service_name} service.")
+
+
+def kill_all_services():
+    logger.info("Killing all services...")
+
+    for service in services:
+        logger.info(f"Killing service: {service}")
+        kill_service(service)
+
+    logger.info("All services have been killed.")
+
+
+def run_service(company, service):
+    if service not in services:
+        logger.error(f"Invalid service name: {service}. Skipping...")
+        return 1
+
+    if services[service] == company:
+        logger.info(f"Company {company} is already running {service}. Skipping...")
+        return 0
+
+    config = load_config()
+    if config is None:
+        logger.error("Error: Could not load config.")
+        return 3
+
+    run_command = config.get(f"company{company}", {}).get(service, {}).get('run')
+    repo_dir = os.path.join(SCRIPT_DIR, f"company{company}", service)
+
+    if os.path.exists(repo_dir):
+        if not execute_command(run_command, repo_dir):
+            logger.error(f"Failed to run command '{run_command}' in {repo_dir}")
+            return 4
+    else:
+        logger.warning(f"Could not find {service} in company{company}. Skipping...")
+        return 5
+
+    services[service] = company
+    return 0
+
+
+def run_from(frontend, backend, algs1, algs2):
+    service_list = [frontend, backend, algs1, algs2]
+
+    for service, company in zip(services.keys(), service_list):
+        run_service(company, service)
+
+
+def run_services(companies):
+    logger.info("Starting containers...")
+
+    for service, company in zip(services.keys(), companies):
+        run_service(company, service)
+
+    logger.info("Completed starting containers!")
+
+
+def run_company(company):
+    if company not in COMPANIES.values():
+        logger.error("Invalid company number provided. Expected 1 or 2.")
+        return 1
+
+    try:
+        print("Running company {}".format(company))
+        run_services([company] * len(services))
+    except Exception as e:
+        logger.exception(f"Error running services: {e}")
+        return 1
+
+    return 0
+
+
+def swap_service(service_name):
+    if service_name not in services:
+        logger.error(f"Invalid service name: {service_name}. Please provide a valid name.")
+        return
+
+    kill_service(service_name)
+    run_service(services[service_name], service_name)
+
+    logger.info(f"Switched {service_name} to company {services[service_name]}")
+
+
+def clone_service(company_name, service):
+    config = load_config()
+    if config is None:
+        logger.error("Error: Could not load config.")
+        return
+
+    clone_command = config.get(company_name, {}).get(service, {}).get('clone')
+    if clone_command:
+        repo_dir = os.path.join(SCRIPT_DIR, company_name, service)
+        if not os.path.exists(repo_dir):
+            if not execute_command(clone_command, SCRIPT_DIR):
+                logger.error(f"Failed to clone {service} of {company_name} from command: {clone_command}")
+        else:
+            logger.warning(f"{service} already exists in {company_name}. Skipping cloning...")
+    else:
+        logger.warning(f"No clone command found for {service} in {company_name}. Skipping cloning...")
+
+
+def is_service_cloned(company, service):
+    repo_dir = os.path.join(SCRIPT_DIR, company, service)
+    return os.path.exists(repo_dir) and bool(os.listdir(repo_dir))
+
+
+def clone_all_services():
+    for company in COMPANIES:
+        for service in services:
+            if not is_service_cloned(company, service):
+                clone_service(company, service)
+
 
 def test():
-    print("This has not been implemented yet")
+    logger.info("This has not been implemented yet")
+
 
 def autotest_all():
-    print("This has not been implemented yet")
+    logger.info("This has not been implemented yet")
+
+
+def handle_run(args):
+    if len(args) != 1:
+        logger.info("Usage: run [1 or 2]")
+    else:
+        try:
+            run_company(int(args[0]))
+        except ValueError:
+            logger.error("Invalid company number. Please provide 1 or 2.")
+
+
+def handle_runfrom(args):
+    if len(args) != 4:
+        logger.info("Usage: runfrom [frontend] [backend] [algs1] [algs2]")
+        logger.info("For each service provide a 1 or 2 to indicate which company to run from.")
+    else:
+        run_services(list(map(int, args)))
+
+
+def handle_swap(args):
+    if len(args) != 1:
+        logger.info("Usage: swap 'frontend' or 'backend' or 'algs1' or 'algs2'")
+    else:
+        swap_service(args[0])
+
+
+def handle_exit(args):
+    kill_all_services()
+    exit(0)
+
+
+def handle_test(args):
+    test()
+
+
+def handle_testall(args):
+    autotest_all()
+
+
+def handle_help(args):
+    print_help()
+
+
+COMMAND_HANDLERS = {
+    'run': handle_run,
+    'runfrom': handle_runfrom,
+    'swap': handle_swap,
+    'exit': handle_exit,
+    'test': handle_test,
+    'testall': handle_testall,
+    'help': handle_help,
+}
+
 
 def parse_input(user_input):
     split_input = user_input.split()
 
     if len(split_input) == 0:
-        print("Please provide a valid command.")
+        logger.info("Please provide a valid command.")
+        print_help()
         return
 
     command = split_input[0]
+    args = split_input[1:]
 
-    if command == 'run':
-        if len(split_input) != 2:
-            print("Usage: run [1 or 2]")
-        else:
-            run(split_input[1])
-    elif command == 'runfrom':
-        if len(split_input) != 5:
-            print("Usage: runfrom [frontend] [backend] [algs1] [algs2]")
-            print("For each module provide a 1 or 2 to indicate which company to run from.")
-        else:
-            run_from(split_input[1], split_input[2], split_input[3], split_input[4])
-    elif command == 'swap':
-        if len(split_input) != 2:
-            print("Usage: swap 'frontend' or 'backend' or 'algs1' or 'algs2'")
-        else:
-            swap_module(split_input[1])
-    elif command == 'exit':
-        kill_all()
-        exit(0)
-    elif command == 'test':
-        test()
-    elif command == 'testall':
-        autotest_all()
+    handler = COMMAND_HANDLERS.get(command)
+    if handler is None:
+        logger.error(f"Unknown command: {command}")
+        print_help()
     else:
-        help()
-        
-        
-def check_and_clone():
-    global script_dir
-    # List of directories to check
-    dirs = [
-        './company1/frontend',
-        './company1/backend',
-        './company1/algs1',
-        './company1/algs2',
-        './company2/frontend',
-        './company2/backend',
-        './company2/algs1',
-        './company2/algs2',
-    ]
-    
-    for dir in dirs:
-        if not os.path.exists(os.path.join(script_dir, dir)):
-            print(f"Directory {dir} does not exist. Cloning...")
-            # Assuming clone.sh takes a directory as argument
-            result = subprocess.run(["./shell/clone.sh", dir], cwd=script_dir)
-            if result.returncode != 0:
-                print(f"Failed to clone into {dir}")
+        handler(args)
+
+
+def print_help():
+    logger.info("""
+    Available commands:
+    - run [Company] - Runs all four services from a given company. Provide 1 or 2 for the company.
+    - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs services from each given company. For each service, provide 1 or 2 to indicate which company to run from.
+    - swap [service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
+    - exit - Terminate all running containers and exit the program.
+    - test - Test the currently running containers. This has not been implemented yet.
+    - testall - Run full test suite. This has not been implemented yet.
+    - help - Show this help message.
+    """)
 
 
 def main():
-    global script_dir
+    # Clone and build all services, if necessary
+    clone_all_services()
+    build_all()
 
-    # Check and clone any missing directories
-    check_and_clone()
-
-    subprocess.run(["./shell/build.sh"], cwd=script_dir)
     # Run company 2 containers by default
-    subprocess.run(["./shell/runfrom.sh", "2", "2", "2", "2"], cwd=script_dir)
-
-    help()
+    run_company(COMPANIES['company2'])
 
     while True:
         user_input = input("Enter a command: ")
