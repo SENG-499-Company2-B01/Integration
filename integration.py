@@ -2,6 +2,9 @@ import json
 import subprocess
 import os
 import logging
+import select
+import subprocess
+import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,30 +36,50 @@ def load_config():
 
 
 def execute_command(command, cwd):
+    if isinstance(command, str):
+        command = command.split()
+
     try:
-        subprocess.run(command, cwd=cwd, shell=True, check=True)
+        return subprocess.call(command, cwd=cwd) == 0
     except subprocess.CalledProcessError as e:
         logger.exception(f"Failed to execute command '{command}' in {cwd}: {e}")
         return False
-    return True
 
+def get_container_names(company, service):
+    config = load_config()
+    return config.get(company, {}).get(service, {}).get('containers', [])
+
+def is_container_running(container_name):
+    command = f"docker ps --filter name=^/{container_name}$"
+    output = subprocess.check_output(command, shell=True, universal_newlines=True)
+    return container_name in output
+
+def is_image_built(image_name):
+    command = f"docker images --filter reference={image_name}"
+    output = subprocess.check_output(command, shell=True, universal_newlines=True)
+    return image_name in output
 
 def build_service(company, service):
     config = load_config()
     if config is None:
+        logger.error("No config found. Aborting build process.")
         return
 
-    build_command = config.get(company, {}).get(service, {}).get('build')
-    if build_command:
-        repo_dir = os.path.join(SCRIPT_DIR, company, service)
-
-        if os.path.exists(repo_dir):
-            if not execute_command(build_command, repo_dir):
-                logger.error(f"Failed to build {service} in {company}")
-        else:
-            logger.warning(f"Could not find {service} in {company}. Skipping build process.")
-    else:
+    build_command = config.get(company, {}).get(service, {}).get('build', None)
+    if build_command is None:
         logger.warning(f"No build command found for {service} in {company}. Skipping build process.")
+        return
+
+    repo_dir = os.path.join(SCRIPT_DIR, company, service)
+    if not os.path.exists(repo_dir):
+        logger.warning(f"Could not find {service} in {company}. Skipping build process.")
+        return
+
+    # Execute build command and get the return code
+    if execute_command(build_command, cwd=repo_dir):
+        logger.info(f"Successfully built {service} in {company}")
+    else:
+        logger.error(f"Failed to build {service} in {company}")
 
 
 def build_all():
@@ -72,21 +95,34 @@ def build_all():
 def kill_service(service_name):
     if service_name not in services:
         logger.error(f"Invalid service name: {service_name}. Not killing any services.")
-        return
+        return False
 
-    current_company = services[service_name]
+    current_company = 'company' + str(services[service_name])
 
-    if current_company in COMPANIES.values():
-        script_dir = os.getcwd()
-        stop_command = ["docker", "container", "stop", f"{service_name}_{current_company}"]
-        remove_command = ["docker", "container", "rm", f"{service_name}_{current_company}"]
+    if current_company in COMPANIES.keys():
+        container_names = get_container_names(current_company, service_name)
 
-        if execute_command(stop_command, script_dir) and execute_command(remove_command, script_dir):
-            services[service_name] = 0
-        else:
-            logger.error(f"Failed to stop and remove Docker container {service_name}_{current_company}.")
-    else:
-        logger.info(f"No company is currently running the {service_name} service.")
+        for container_name in container_names:
+            stop_command = ["docker", "container", "stop", container_name]
+            remove_command = ["docker", "container", "rm", container_name]
+
+            if execute_command(stop_command, SCRIPT_DIR):
+                logger.info(f"Stopped Docker container {container_name}.")
+            else:
+                logger.error(f"Failed to stop Docker container {container_name}.")
+                return
+
+            if execute_command(remove_command, SCRIPT_DIR):
+                logger.info(f"Removed Docker container {container_name}.")
+            else:
+                logger.error(f"Remove Docker container {container_name}.")
+                return
+                
+        services[service_name] = 0
+        return True
+
+    logger.info(f"No company is currently running the {service_name} service.")
+    return False
 
 
 def kill_all_services():
@@ -99,46 +135,51 @@ def kill_all_services():
     logger.info("All services have been killed.")
 
 
+
 def run_service(company, service):
     if service not in services:
         logger.error(f"Invalid service name: {service}. Skipping...")
-        return 1
+        return
 
-    if services[service] == company:
+    current_running_company = services[service]
+    if current_running_company == company:
         logger.info(f"Company {company} is already running {service}. Skipping...")
-        return 0
+        return
+
+    # If the current running service is not from the same company,
+    # kill the service before starting the new one
+    if current_running_company != 0:
+        kill_service(service)
 
     config = load_config()
     if config is None:
         logger.error("Error: Could not load config.")
-        return 3
+        return
 
     run_command = config.get(f"company{company}", {}).get(service, {}).get('run')
     repo_dir = os.path.join(SCRIPT_DIR, f"company{company}", service)
 
     if os.path.exists(repo_dir):
-        if not execute_command(run_command, repo_dir):
-            logger.error(f"Failed to run command '{run_command}' in {repo_dir}")
-            return 4
+        container_names = config.get(f"company{company}", {}).get(service, {}).get('containers')
+        
+        for container_name in container_names:
+            if is_container_running(container_name):
+                logger.info(f"Container for {service} in {company} already running.")
+            else:
+                if execute_command(run_command, repo_dir):
+                    break
+                else:
+                    logger.error(f"Failed to run command '{run_command}' in {repo_dir}")
     else:
         logger.warning(f"Could not find {service} in company{company}. Skipping...")
-        return 5
 
     services[service] = company
-    return 0
 
 
-def run_from(frontend, backend, algs1, algs2):
-    service_list = [frontend, backend, algs1, algs2]
-
-    for service, company in zip(services.keys(), service_list):
-        run_service(company, service)
-
-
-def run_services(companies):
+def run_services(service_companies: list):
     logger.info("Starting containers...")
 
-    for service, company in zip(services.keys(), companies):
+    for service, company in zip(services.keys(), service_companies):
         run_service(company, service)
 
     logger.info("Completed starting containers!")
@@ -158,16 +199,34 @@ def run_company(company):
 
     return 0
 
-
 def swap_service(service_name):
     if service_name not in services:
-        logger.error(f"Invalid service name: {service_name}. Please provide a valid name.")
-        return
+        logger.error(f"Invalid service name: {service_name}. Not swapping.")
+        return False
 
-    kill_service(service_name)
-    run_service(services[service_name], service_name)
+    # The company currently running the service
+    current_company = services[service_name]
+    # The total number of companies
+    num_companies = len(COMPANIES)
 
-    logger.info(f"Switched {service_name} to company {services[service_name]}")
+    # The company that should run the service next
+    next_company = (current_company % num_companies) + 1
+
+    # Stop the service for the current company
+    if not kill_service(service_name):
+        logger.warning(f"Failed to kill {service_name} for company{current_company}.")
+        return False
+
+    # Start the service for the next company
+    if run_service(f"{next_company}", service_name):
+        logger.warning(f"Failed to start {service_name} for company{next_company}.")
+        return False
+
+    # Update the company running the service
+    services[service_name] = next_company
+    logger.info(f"Successfully swapped {service_name} to company{next_company}.")
+    return True
+
 
 
 def clone_service(company_name, service):
@@ -230,7 +289,8 @@ def handle_swap(args):
     if len(args) != 1:
         logger.info("Usage: swap 'frontend' or 'backend' or 'algs1' or 'algs2'")
     else:
-        swap_service(args[0])
+        if not swap_service(args[0]):
+            logger.warning(f"Failed to swap {args[0]}")
 
 
 def handle_exit(args):
@@ -296,14 +356,20 @@ def print_help():
 def main():
     # Clone and build all services, if necessary
     clone_all_services()
-    build_all()
+    #build_all()
 
     # Run company 2 containers by default
     run_company(COMPANIES['company2'])
 
     while True:
+        # Clear input buffer
+        while select.select([sys.stdin], [], [], 0.0)[0]:
+            sys.stdin.read(1)
+
+        # Get user input
         user_input = input("Enter a command: ")
         parse_input(user_input)
+
 
 
 if __name__ == "__main__":
