@@ -12,14 +12,14 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["put container names here"]
+            "containers": ["backend-db-1", "backend-api-1"]
         },
         "algs1": {
             "clone": "git clone git@github.com:seng499company1/alg1-scheduler.git company1/algs1",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["put container names here"]
+            "containers": ["algs1-alg1-scheduler-1"]
         },
         "algs2": {
             "clone": "git clone git@github.com:seng499company1/alg2.git company1/algs2",
@@ -47,6 +47,7 @@
         },
         "algs1": {
             "clone": "git clone https://github.com/SENG-499-Company2-B01/Algs1.git company2/algs1",
+            "env": "env/c2algs1.env",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
@@ -54,6 +55,7 @@
         },
         "algs2": {
             "clone": "git clone https://github.com/SENG-499-Company2-B01/Algs2.git company2/algs2",
+            "env": "env/c2algs2.env",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
