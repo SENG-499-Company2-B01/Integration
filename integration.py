@@ -242,7 +242,10 @@ def clone_service(company_name, service):
             if not execute_command(clone_command, SCRIPT_DIR):
                 logger.error(f"Failed to clone {service} of {company_name} from command: {clone_command}")
         else:
-            logger.warning(f"{service} already exists in {company_name}. Skipping cloning...")
+            logger.info(f"{service} already exists in {company_name}. Pulling instead...")
+            if not execute_command("git pull", repo_dir):
+                logger.error(f"Failed to clone {service} of {company_name} from command: {clone_command}")
+
     else:
         logger.warning(f"No clone command found for {service} in {company_name}. Skipping cloning...")
 
@@ -362,10 +365,6 @@ def main():
     run_company(COMPANIES['company2'])
 
     while True:
-        # Clear input buffer
-        while select.select([sys.stdin], [], [], 0.0)[0]:
-            sys.stdin.read(1)
-
         # Get user input
         user_input = input("Enter a command: ")
         parse_input(user_input)
