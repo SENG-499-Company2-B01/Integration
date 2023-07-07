@@ -9,11 +9,13 @@ class LoginPageLocators(object):
 class ProfLandingPageLocators(object):
     SCHED_PREF_NAVBAR = (By.XPATH, "//div[text()='SCHEDULING PREFERENCES']")
     SET_PREF_BUTTON = (By.XPATH, "//div[text()='SET YOUR PREFERENCES']")
+    USER_MENU_BUTTON = (By.XPATH, "(//button)[1]")
+    SIGN_OUT_BUTTON = (By.XPATH, "//button[text()='Sign out']")
 
 class ProfPrefPageLocators(object):
-    SEMESTER_FALL_RADIO = (By.XPATH, "//*[@value='Fall']/parent::span")
-    SEMESTER_WINTER_RADIO = (By.XPATH, "//*[@value='Winter']/parent::span")
-    SEMESTER_SUMMER_RADIO = (By.XPATH, "//*[@value='Summer']/parent::span")
+    SEMESTER_FALL_RADIO = (By.XPATH, "//span[text()='Fall']")
+    SEMESTER_WINTER_RADIO = (By.XPATH, "//span[text()='Winter']")
+    SEMESTER_SUMMER_RADIO = (By.XPATH, "//span[text()='Summer']")
     ABLE_TO_TEACH_RADIO_YES = (By.XPATH, "//input[@value='Yes']")
     ABLE_TO_TEACH_RADIO_NO = (By.XPATH, "//input[@value='No']")
     ABLE_TO_TEACH_TEXTBOX = (By.ID, "preference_reason")
@@ -27,3 +29,13 @@ class ProfPrefPageLocators(object):
     PREF_CLEAR_BUTTON = (By.XPATH, "//span[text()='CLEAR']/parent::button")
     PREF_CANCEL_BUTTON = (By.XPATH, "//span[text()='CANCEL']/parent::button")
     PREF_SUBMIT_BUTTON = (By.XPATH, "//span[text()='SUBMIT']/parent::button")
+
+class AdminLandingPageLocators(object):
+    GENERATE_SCHED_LINK = (By.XPATH, "//a[@href='/generate']")
+    CREATE_ACCT_LINK = (By.XPATH, "//a[@href='/CreateAccountPage']")
+    VIEW_PREF_LINK = (By.XPATH, "//a[@href='/Preferences']")
+    USER_MENU_BUTTON = (By.XPATH, "(//button)[1]")
+    SIGN_OUT_BUTTON = (By.XPATH, "//button[text()='Sign out']")
+
+class GenerateSchedulePageLocators(object):
+    START_GEN_BUTTON = (By.XPATH, "//div[text()='START GENERATING']")
