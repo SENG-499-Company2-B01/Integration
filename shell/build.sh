@@ -2,7 +2,7 @@
 
 echo "Building..."
 
-for company in "company1" "company2"
+for company in "company2"
 do
     for repo in "frontend" "backend" "algs1" "algs2"
     do

@@ -5,7 +5,7 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["put container names here"]
+            "containers": ["react_container"]
         },
         "backend": {
             "clone": "git clone git@github.com:seng499company1/backend.git company1/backend",

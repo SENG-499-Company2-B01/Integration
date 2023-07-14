@@ -364,6 +364,8 @@ def main():
     # Run company 2 containers by default
     run_company(COMPANIES['company2'])
 
+    print_help()
+
     while True:
         # Get user input
         user_input = input("Enter a command: ")
