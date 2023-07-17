@@ -267,7 +267,21 @@ def test():
 
 
 def autotest_all():
-    logger.info("This has not been implemented yet")
+    logger.info("Killing all currently running services")
+    kill_all_services()
+    logger.info("Running all Company 2 services")
+    run_company(2)
+    logger.info("Testing default Company 2 configuration")
+    # Test function will call Selenium tests when implemented
+    test()
+    for service in ["backend", "algs1", "algs2"]:
+        logger.info(f"Swapping out {service}")
+        swap_service(service)
+        logger.info(f"Testing Company 2 configuration with swapped out {service}")
+        # Test function will call Selenium tests when implemented
+        test()
+        logger.info(f"Swapping {service} back to default")
+        swap_service(service)
 
 
 def handle_run(args):
