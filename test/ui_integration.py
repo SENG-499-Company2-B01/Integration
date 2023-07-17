@@ -1,6 +1,5 @@
 import pytest
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 import page
 import time
 
@@ -13,7 +12,7 @@ class ChromeTest(unittest.TestCase):
     def setUpClass(cls):
         cls.driver = webdriver.Chrome()
         cls.driver.implicitly_wait(10)
-        cls.driver.get('http://localhost:3000')
+        cls.driver.get('https://company2-frontend.onrender.com/')
         cls.driver.fullscreen_window()
         return super().setUpClass()
     
@@ -23,6 +22,7 @@ class ChromeTest(unittest.TestCase):
         self.prof_landing_page = page.ProfLandingPage(self.driver)
         self.admin_landing_page = page.AdminLandingPage(self.driver)
         self.generate_schedule_page = page.GenerateSchedulePage(self.driver)
+        self.create_account_page = page.CreateAccountPage(self.driver)
         return super().setUp()
     
     def test_1_prof_login(self):
@@ -38,15 +38,25 @@ class ChromeTest(unittest.TestCase):
         self.prof_landing_page.sign_out()
 
     def test_4_admin_login(self):
-        self.driver.get('http://localhost:3000')
+        self.driver.get('https://company2-frontend.onrender.com/')
         self.driver.fullscreen_window()
         self.login_page.login('Rich.Little', 'Rich.Little12345')
 
     def test_5_generate_schedule(self):
-        self.admin_landing_page.go_to_generate()
-        self.generate_schedule_page.start_generation()
+        self.generate_schedule_page.start_generation("Spring")
+        self.generate_schedule_page.wait_for_generation()
 
-    def test_6_admin_sign_out(self):
+    def test_6_create_prof_account(self):
+        self.admin_landing_page.go_to_create_account()
+        self.create_account_page.fill_email("test@test.com")
+        self.create_account_page.fill_name("Testfirst", "Testlast")
+        self.create_account_page.fill_expertise("test")
+        self.create_account_page.fill_education("test")
+        self.create_account_page.fill_experience("5")
+        self.create_account_page.fill_password("test")
+        self.create_account_page.submit_form()
+
+    def test_7_admin_sign_out(self):
         self.admin_landing_page.sign_out()
     
     @classmethod
