@@ -93,5 +93,4 @@ class CreateAccountPage(BasePage):
 
     def submit_form(self):
         ActionChains(self.driver).scroll_by_amount(0,300).perform()
-        time.sleep(5)
         self.driver.find_element(*CreateAccountPageLocators.CREATE_BUTTON).click()
