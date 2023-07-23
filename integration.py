@@ -26,6 +26,56 @@ services = {
     'algs2': 0
 }
 
+def set_default_env_variables():
+    # Frontend variable to communicate with backend
+    os.environ["REACT_APP_BACKEND_URL"] = "http://localhost:8000"
+    # Company 1
+    os.environ["DATABASE_URI"] = "postgresql+psycopg2://admin:password@db:5432/uvic"
+    os.environ["APP_SETTINGS"] = "ProductionConfig"
+    os.environ["FLASK_RUN_HOST"] = "0.0.0.0"
+    os.environ["FLASK_APP"] = "app.py"
+    os.environ["FLASK_DEBUG"] = "1"
+    os.environ["APP_VERSION"] = "$APP_VERSION"
+    # Company 2
+    os.environ["ENVIRONMENT"] = "development"
+    os.environ["MONGO_LOCAL_HOST"] = "10.9.0.3:27017"
+    os.environ["MONGO_LOCAL_USERNAME"] = "admin"
+    os.environ["MONGO_LOCAL_PASSWORD"] = "admin"
+    os.environ["ADMIN_1"] = "rich.little "
+    os.environ["ADMIN_2"] = "dan.mai"
+    os.environ["JWT_SECRET"] = "secret"
+    os.environ["API_HASH"] = "fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca"
+
+def update_backend_env_variables(service_name, company):
+    # Company 1 uses ALG1_URLs and ALG2_URLs env vars
+    if services["backend"] == 1:
+        # Update algs1 env var for company 1 backend
+        if service_name == "algs1":
+            if company == 1:
+                os.environ["ALG1_URLs"] = "http://localhost:5001,http://localhost:5001"
+            elif company == 2:
+                os.environ["ALG1_URLs"] = "http://localhost:8017/generate,http://localhost:8017/generate"
+        # Update algs2 env var for company 1 backend
+        elif service_name == "algs2":
+            if company == 1:
+                os.environ["ALG2_URLs"] = "http://localhost:8080,http://localhost:8080"
+            elif company == 2:
+                os.environ["ALG2_URLs"] = "http://localhost:8001/predict,http://localhost:8001/predict"
+    # Company 2 uses ALGS1_API and ALGS2_API env vars
+    elif services["backend"] == 2:
+        # Update algs1 env var for company 2 backend
+        if service_name == "algs1":
+            if company == 1:
+                os.environ["ALGS1_API"] = "http://localhost:5001"
+            elif company == 2:
+                os.environ["ALGS1_API"] = "http://localhost:8017/generate"
+        # Update algs2 env var for company 2 backend
+        elif service_name == "algs2":
+            if company == 1:
+                os.environ["ALGS2_API"] = "http://localhost:8080"
+            elif company == 2:
+                os.environ["ALGS2_API"] = "http://localhost:8001/predict"
+
 def load_config():
     try:
         with open(CONFIG_FILE) as f:
@@ -212,6 +262,9 @@ def swap_service(service_name):
     # The company that should run the service next
     next_company = (current_company % num_companies) + 1
 
+    # Change backend env variables for swapped service
+    update_backend_env_variables(service_name, next_company)
+
     # Stop the service for the current company
     if not kill_service(service_name):
         logger.warning(f"Failed to kill {service_name} for company{current_company}.")
@@ -371,6 +424,8 @@ def print_help():
 
 
 def main():
+    # Init env variables
+    set_default_env_variables()
     # Clone and build all services, if necessary
     clone_all_services()
     #build_all()
