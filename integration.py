@@ -296,6 +296,9 @@ def handle_swap(args):
             logger.warning(f"Failed to swap {args[0]}")
 
 
+def handle_killall(args):
+    kill_all_services()
+
 def handle_exit(args):
     kill_all_services()
     exit(0)
@@ -317,6 +320,7 @@ COMMAND_HANDLERS = {
     'run': handle_run,
     'runfrom': handle_runfrom,
     'swap': handle_swap,
+    'killall': handle_killall,
     'exit': handle_exit,
     'test': handle_test,
     'testall': handle_testall,
@@ -349,6 +353,7 @@ def print_help():
     - run [Company] - Runs all four services from a given company. Provide 1 or 2 for the company.
     - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs services from each given company. For each service, provide 1 or 2 to indicate which company to run from.
     - swap [service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
+    - killall - Terminate all running containers.
     - exit - Terminate all running containers and exit the program.
     - test - Test the currently running containers. This has not been implemented yet.
     - testall - Run full test suite. This has not been implemented yet.
@@ -362,7 +367,7 @@ def main():
     #build_all()
 
     # Run company 2 containers by default
-    run_company(COMPANIES['company2'])
+    # run_company(COMPANIES['company2'])
 
     print_help()
 

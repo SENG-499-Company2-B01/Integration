@@ -42,11 +42,15 @@ To run the full features, run `python3 integration.py`.
 
 - `runfrom [Frontend] [Backend] [Algs1] [Algs2]` - This command runs modules from each given company. For each module ([Frontend], [Backend], [Algs1], [Algs2]), replace the placeholder with 1 or 2 to indicate which company's module to run from.
 
+- `killall` - This command terminates all running containers.
+
 - `exit` - This command terminates all running containers and exits the program.
 
 - `test` - This command tests the currently running containers. Note: This feature has not been implemented yet.
 
 - `testall` - This command runs a full test suite. Note: This feature has not been implemented yet.
+
+- `help` - This command prints a list of available commands, their syntax, and a brief description of their function.
 
 ### Selenium
 Selenium Webdriver is used to test the integration between our backend and the UI. Individual test cases can be found in the `/test/test_cases` directory, and they reference selenium page objects in `/test/page.py`.
