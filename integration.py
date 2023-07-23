@@ -45,6 +45,9 @@ def set_default_env_variables():
     os.environ["ADMIN_2"] = "dan.mai"
     os.environ["JWT_SECRET"] = "secret"
     os.environ["API_HASH"] = "fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca"
+    os.environ["HOST_NAME"] = "http://localhost"
+    os.environ["DJANGO_MODE"] = "dev"
+    os.environ["DJANGO_KEY"] = "4104c7d331cb642a222340cd5324b4f2"
 
 def update_backend_env_variables(service_name, company):
     # Company 1 uses ALG1_URLs and ALG2_URLs env vars
