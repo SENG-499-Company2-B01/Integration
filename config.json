@@ -12,21 +12,21 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["backend_db_1", "backend_api_1"]
+            "containers": ["backend-db-1", "backend-api-1"]
         },
         "algs1": {
             "clone": "git clone git@github.com:seng499company1/alg1-scheduler.git company1/algs1",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["algs1_alg1_scheduler_1"]
+            "containers": ["algs1-alg1-scheduler-1"]
         },
         "algs2": {
             "clone": "git clone git@github.com:seng499company1/alg2.git company1/algs2",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["put container names here"]
+            "containers": ["alg2-alg2-1"]
         }
     },
     "company2": {
