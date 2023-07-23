@@ -323,21 +323,32 @@ def test():
 
 
 def autotest_all():
-    logger.info("Killing all currently running services")
-    kill_all_services()
-    logger.info("Running all Company 2 services")
-    run_company(2)
-    logger.info("Testing default Company 2 configuration")
-    # Test function will call Selenium tests when implemented
-    test()
-    for service in ["backend", "algs1", "algs2"]:
-        logger.info(f"Swapping out {service}")
-        swap_service(service)
-        logger.info(f"Testing Company 2 configuration with swapped out {service}")
+    for company in [1, 2]:
+        logger.info("Killing all currently running services")
+        kill_all_services()
+        logger.info(f"Running default Company {company} configuration")
+        run_company(company)
+        logger.info(f"Testing default Company {company} configuration")
         # Test function will call Selenium tests when implemented
+        # Test 1: for company x, test with algs1 and algs2 from company x
         test()
-        logger.info(f"Swapping {service} back to default")
-        swap_service(service)
+        logger.info(f"Swapping out algs1")
+        swap_service("algs1")
+        logger.info(f"Testing Company {company} configuration with swapped out algs1")
+        # Test 2: for company x, test with algs1 from company y and algs2 from company x
+        test()
+        logger.info(f"Swapping out algs2")
+        swap_service("algs2")
+        logger.info(f"Testing Company {company} configuration with swapped out algs2")
+        # Test 3: for company x, test with algs1 from company y and algs2 from company y
+        test()
+        logger.info(f"Swapping out algs1")
+        swap_service("algs1")
+        logger.info(f"Testing Company {company} configuration with original algs1")
+        # Test 4: for company x, test with algs1 from company x and algs2 from company y
+        test()
+
+    logger.info("Finished all combinations of Company 1 and 2 tests")
 
 
 def handle_run(args):
