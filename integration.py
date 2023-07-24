@@ -2,9 +2,7 @@ import json
 import subprocess
 import os
 import logging
-import select
 import subprocess
-import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,58 +24,88 @@ services = {
     'algs2': 0
 }
 
-def set_default_env_variables():
-    # Frontend variable to communicate with backend
-    os.environ["REACT_APP_BACKEND_URL"] = "http://localhost:8000"
-    # Company 1
-    os.environ["DATABASE_URI"] = "postgresql+psycopg2://admin:password@db:5432/uvic"
-    os.environ["APP_SETTINGS"] = "ProductionConfig"
-    os.environ["FLASK_RUN_HOST"] = "0.0.0.0"
-    os.environ["FLASK_APP"] = "app.py"
-    os.environ["FLASK_DEBUG"] = "1"
-    os.environ["APP_VERSION"] = "$APP_VERSION"
-    # Company 2
-    os.environ["ENVIRONMENT"] = "development"
-    os.environ["MONGO_LOCAL_HOST"] = "10.9.0.3:27017"
-    os.environ["MONGO_LOCAL_USERNAME"] = "admin"
-    os.environ["MONGO_LOCAL_PASSWORD"] = "admin"
-    os.environ["ADMIN_1"] = "rich.little "
-    os.environ["ADMIN_2"] = "dan.mai"
-    os.environ["JWT_SECRET"] = "secret"
-    os.environ["API_HASH"] = "fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca"
-    os.environ["HOST_NAME"] = "http://localhost"
-    os.environ["DJANGO_MODE"] = "dev"
-    os.environ["DJANGO_KEY"] = "4104c7d331cb642a222340cd5324b4f2"
+company1_backend_algs1 = {
+    1 : "http://localhost:5001,http://localhost:5001",
+    2 : "http://localhost:8017,http://localhost:8017"
+}
 
-def update_backend_env_variables(service_name, company):
-    # Company 1 uses ALG1_URLs and ALG2_URLs env vars
-    if services["backend"] == 1:
-        # Update algs1 env var for company 1 backend
-        if service_name == "algs1":
-            if company == 1:
-                os.environ["ALG1_URLs"] = "http://localhost:5001,http://localhost:5001"
-            elif company == 2:
-                os.environ["ALG1_URLs"] = "http://localhost:8017/generate,http://localhost:8017/generate"
-        # Update algs2 env var for company 1 backend
-        elif service_name == "algs2":
-            if company == 1:
-                os.environ["ALG2_URLs"] = "http://localhost:8080,http://localhost:8080"
-            elif company == 2:
-                os.environ["ALG2_URLs"] = "http://localhost:8001/predict,http://localhost:8001/predict"
-    # Company 2 uses ALGS1_API and ALGS2_API env vars
-    elif services["backend"] == 2:
-        # Update algs1 env var for company 2 backend
-        if service_name == "algs1":
-            if company == 1:
-                os.environ["ALGS1_API"] = "http://localhost:5001"
-            elif company == 2:
-                os.environ["ALGS1_API"] = "http://localhost:8017/generate"
-        # Update algs2 env var for company 2 backend
-        elif service_name == "algs2":
-            if company == 1:
-                os.environ["ALGS2_API"] = "http://localhost:8080"
-            elif company == 2:
-                os.environ["ALGS2_API"] = "http://localhost:8001/predict"
+company1_backend_algs2 = {
+    1 : "http://localhost:8080,http://localhost:8080",
+    2 : "http://localhost:8001,http://localhost:8001"
+}
+
+company2_backend_algs1 = {
+    1 : "http://localhost:5001/generate",
+    2 : "http://localhost:8017/generate"
+}
+
+company2_backend_algs2 = {
+    1 : "http://localhost:8080/predict",
+    2 : "http://localhost:8001/predict"
+}
+
+def write_env_file(env_file_path, env_variables):
+    with open(env_file_path, "w") as f:
+        for key in env_variables:
+            f.write(f'"{key}"="{env_variables[key]}"\n')
+
+def set_frontend_env_variables():
+    env_variables = {
+        "REACT_APP_BACKEND_URL" : "http://localhost:8000"
+    }
+    write_env_file("company2/frontend/.env", env_variables)
+
+def set_company1_env_variables(algs1_link, algs2_link):
+    env_variables = {
+        "DATABASE_URI" : "postgresql+psycopg2://admin:password@db:5432/uvic",
+        "APP_SETTINGS" : "ProductionConfig",
+        "FLASK_RUN_HOST" : "0.0.0.0",
+        "FLASK_APP" : "app.py",
+        "FLASK_DEBUG" : "1",
+        "APP_VERSION" : "$APP_VERSION",
+        "ALG1_URLs" : algs1_link,
+        "ALG2_URLs" : algs2_link
+    }
+    write_env_file("company1/backend/.env", env_variables)
+
+def set_company2_env_variables(algs1_link, algs2_link):
+    env_variables = {
+        "ENVIRONMENT" : "development",
+        "MONGO_LOCAL_HOST" : "10.9.0.3:27017",
+        "MONGO_LOCAL_USERNAME" : "admin",
+        "MONGO_LOCAL_PASSWORD" : "admin",
+        "ADMIN_1" : "rich.little ",
+        "ADMIN_2" : "dan.mai",
+        "JWT_SECRET" : "secret",
+        "API_HASH" : "fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca",
+        "HOST_NAME" : "http://localhost",
+        "DJANGO_MODE" : "dev",
+        "DJANGO_KEY" : "4104c7d331cb642a222340cd5324b4f2",
+        "ALG1_URLs" : algs1_link,
+        "ALG2_URLs" : algs2_link
+    }
+    write_env_file("company2/backend/.env", env_variables)
+
+def set_company1_algs2_env_variables():
+    env_variables = {
+    }
+    write_env_file("company1/algs2/.env", env_variables)
+
+def set_company2_algs2_env_variables():
+    env_variables = {
+        "DJANGO_MODE" : "dev",
+        "SECRET_KEY" : "4104c7d331cb642a222340cd5324b4f2",
+        "HOST_IP" : '127.0.0.1',
+        "HOST_NAME" : 'www.example.com',
+        "BACKEND_URL" : 'http://localhost:8000'
+    }
+    write_env_file("company2/algs2/.env", env_variables)
+
+def update_backend_env_variables(backend_company, algs1_company, algs2_company):
+    if backend_company == 1:
+        set_company1_env_variables(company1_backend_algs1[algs1_company], company1_backend_algs2[algs2_company])
+    elif backend_company == 2:
+        set_company2_env_variables(company2_backend_algs1[algs1_company], company2_backend_algs2[algs2_company])
 
 def load_config():
     try:
@@ -323,30 +351,22 @@ def test():
 
 
 def autotest_all():
-    for company in [1, 2]:
-        logger.info("Killing all currently running services")
-        kill_all_services()
-        logger.info(f"Running default Company {company} configuration")
-        run_company(company)
-        logger.info(f"Testing default Company {company} configuration")
-        # Test function will call Selenium tests when implemented
-        # Test 1: for company x, test with algs1 and algs2 from company x
-        test()
-        logger.info(f"Swapping out algs1")
-        swap_service("algs1")
-        logger.info(f"Testing Company {company} configuration with swapped out algs1")
-        # Test 2: for company x, test with algs1 from company y and algs2 from company x
-        test()
-        logger.info(f"Swapping out algs2")
-        swap_service("algs2")
-        logger.info(f"Testing Company {company} configuration with swapped out algs2")
-        # Test 3: for company x, test with algs1 from company y and algs2 from company y
-        test()
-        logger.info(f"Swapping out algs1")
-        swap_service("algs1")
-        logger.info(f"Testing Company {company} configuration with original algs1")
-        # Test 4: for company x, test with algs1 from company x and algs2 from company y
-        test()
+    logger.info("Killing all currently running services")
+    kill_all_services()
+    logger.info(f"Running default Company 2 configuration")
+    run_company(2)
+    logger.info(f"Testing default Company 2 configuration")
+    test()
+    for backend in [1, 2]:
+        if services['backend'] != backend:
+            swap_service("backend")
+        for algs1 in [1, 2]:
+            if services['algs1'] != algs1:
+                swap_service("backend")
+            for algs2 in [1, 2]:
+                if services['algs2'] != algs2:
+                    swap_service("algs2")
+                test()
 
     logger.info("Finished all combinations of Company 1 and 2 tests")
 
@@ -438,11 +458,14 @@ def print_help():
 
 
 def main():
-    # Init env variables
-    set_default_env_variables()
     # Clone and build all services, if necessary
     clone_all_services()
     #build_all()
+
+    # Init frontend env variable
+    set_frontend_env_variables()
+    set_company1_algs2_env_variables()
+    set_company2_algs2_env_variables()
 
     # Run company 2 containers by default
     run_company(COMPANIES['company2'])
