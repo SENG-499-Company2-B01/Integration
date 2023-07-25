@@ -31,11 +31,29 @@ class ProfPrefPageLocators(object):
     PREF_SUBMIT_BUTTON = (By.XPATH, "//span[text()='SUBMIT']/parent::button")
 
 class AdminLandingPageLocators(object):
-    GENERATE_SCHED_LINK = (By.XPATH, "//a[@href='/generate']")
+    VIEW_SCHED_LINK = (By.XPATH, "//a[@href='/timetable']")
     CREATE_ACCT_LINK = (By.XPATH, "//a[@href='/CreateAccountPage']")
     VIEW_PREF_LINK = (By.XPATH, "//a[@href='/Preferences']")
     USER_MENU_BUTTON = (By.XPATH, "(//button)[1]")
     SIGN_OUT_BUTTON = (By.XPATH, "//button[text()='Sign out']")
 
+
+
 class GenerateSchedulePageLocators(object):
-    START_GEN_BUTTON = (By.XPATH, "//div[text()='START GENERATING']")
+    START_GEN_BUTTON = (By.XPATH, "//div[text()='GENERATE SCHEDULE']/parent::button")
+    TERM_SELECT_DROPDOWN = (By.XPATH, "//*[text()='Select']/parent::div")
+    TERM_SELECT_ITEM = lambda sem: (By.XPATH, f"//li[@value='{sem}']")
+    SCHEDULE_CALENDAR = (By.CLASS_NAME, "rbc-calendar")
+
+class CreateAccountPageLocators(object):
+    EMAIL_FIELD = (By.ID, "createAccount_email")
+    FIRSTNAME_FIELD = (By.ID, "createAccount_firstName")
+    LASTNAME_FIELD = (By.ID, "createAccount_lastName")
+    EXPERTISE_FIELD = (By.ID, "createAccount_fieldOfExpertise")
+    EXPERIENCE_FIELD = (By.ID, "createAccount_yearsOfExperience")
+    EDUCATION_FIELD = (By.ID, "createAccount_highestEducationObtained")
+    PASSWORD_FIELD = (By.ID, "createAccount_password")
+    CONFIRMEDPASSWORD_FIELD = (By.ID, "createAccount_confirmedPassword")
+    CLEAR_BUTTON = (By.XPATH, "//span[text()='CLEAR']/parent::button")
+    CANCEL_BUTTON = (By.XPATH, "//span[text()='CANCEL']/parent::button")
+    CREATE_BUTTON = (By.XPATH, "//span[text()='CREATE']/parent::button")
