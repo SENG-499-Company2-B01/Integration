@@ -312,10 +312,12 @@ def swap_service(service_name):
     logger.info(f"Updating backend env variables for {service_name} to company{next_company}...")
     kill_service("backend")
     update_backend_env_variables(services['backend'], services['algs1'], services['algs2'])
-    run_service(services['backend'], services['backend'])
+    if not run_service(services['backend'], "backend"):
+        logger.warning(f"Failed to start backend for company{services['backend']}.")
+        services["backend"] = 0
+        return False
+
     return True
-
-
 
 def clone_service(company_name, service):
     config = load_config()
@@ -355,6 +357,7 @@ def test():
 
 
 def autotest_all():
+    run_service(2, 'frontend')
     for backend in [2, 1]:
         if services['backend'] != backend:
             swap_service("backend")
