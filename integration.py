@@ -47,7 +47,7 @@ company2_backend_algs2 = {
 def write_env_file(env_file_path, env_variables):
     with open(env_file_path, "w") as f:
         for key in env_variables:
-            f.write(f'"{key}"="{env_variables[key]}"\n')
+            f.write(f'{key} = "{env_variables[key]}"\n')
 
 def set_frontend_env_variables():
     env_variables = {
@@ -62,7 +62,7 @@ def set_company1_env_variables(algs1_link, algs2_link):
         "FLASK_RUN_HOST" : "0.0.0.0",
         "FLASK_APP" : "app.py",
         "FLASK_DEBUG" : "1",
-        "APP_VERSION" : "$APP_VERSION",
+        "APP_VERSION" : "1.0.0",
         "ALG1_URLs" : algs1_link,
         "ALG2_URLs" : algs2_link
     }
@@ -78,11 +78,8 @@ def set_company2_env_variables(algs1_link, algs2_link):
         "ADMIN_2" : "dan.mai",
         "JWT_SECRET" : "secret",
         "API_HASH" : "fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca",
-        "HOST_NAME" : "http://localhost",
-        "DJANGO_MODE" : "dev",
-        "DJANGO_KEY" : "4104c7d331cb642a222340cd5324b4f2",
-        "ALG1_URLs" : algs1_link,
-        "ALG2_URLs" : algs2_link
+        "ALGS1_API" : algs1_link,
+        "ALGS2_API" : algs2_link
     }
     write_env_file("company2/backend/.env", env_variables)
 
@@ -465,12 +462,14 @@ def print_help():
 def main():
     # Clone and build all services, if necessary
     clone_all_services()
-    #build_all()
 
     # Init frontend env variable
     set_frontend_env_variables()
     set_company1_algs2_env_variables()
     set_company2_algs2_env_variables()
+
+    # Build all services
+    build_all()
 
     # Run company 2 containers by default
     # run_company(COMPANIES['company2'])
