@@ -255,8 +255,12 @@ def run_service(company, service):
 
 
 def run_services(service_companies: list):
-    logger.info("Starting containers...")
+    logger.info(f"Updating backend env variables...")
+    kill_service("backend")
+    update_backend_env_variables(service_companies[1], service_companies[2], service_companies[3])
+    build_service(f"company{service_companies[1]}", "backend")
 
+    logger.info("Starting containers...")
     for service, company in zip(services.keys(), service_companies):
         run_service(company, service)
 
@@ -266,16 +270,16 @@ def run_services(service_companies: list):
 def run_company(company):
     if company not in COMPANIES.values():
         logger.error("Invalid company number provided. Expected 1 or 2.")
-        return 1
+        return False
 
     try:
         print("Running company {}".format(company))
         run_services([company] * len(services))
     except Exception as e:
         logger.exception(f"Error running services: {e}")
-        return 1
+        return False
 
-    return 0
+    return True
 
 def swap_service(service_name):
     if service_name not in services:
@@ -290,22 +294,25 @@ def swap_service(service_name):
     # The company that should run the service next
     next_company = (current_company % num_companies) + 1
 
-    # Change backend env variables for swapped service
-    update_backend_env_variables(service_name, next_company)
-
     # Stop the service for the current company
     if not kill_service(service_name):
         logger.warning(f"Failed to kill {service_name} for company{current_company}.")
         return False
 
     # Start the service for the next company
-    if run_service(f"{next_company}", service_name):
+    if not run_service(f"{next_company}", service_name):
         logger.warning(f"Failed to start {service_name} for company{next_company}.")
         return False
 
     # Update the company running the service
     services[service_name] = next_company
     logger.info(f"Successfully swapped {service_name} to company{next_company}.")
+
+    # Change backend env variables for swapped service
+    logger.info(f"Updating backend env variables for {service_name} to company{next_company}...")
+    kill_service("backend")
+    update_backend_env_variables(services['backend'], services['algs1'], services['algs2'])
+    run_service(services['backend'], services['backend'])
     return True
 
 
@@ -325,7 +332,7 @@ def clone_service(company_name, service):
         else:
             logger.info(f"{service} already exists in {company_name}. Pulling instead...")
             if not execute_command("git pull", repo_dir):
-                logger.error(f"Failed to clone {service} of {company_name} from command: {clone_command}")
+                logger.error(f"Failed to pull {service} of {company_name} from command: {clone_command}")
 
     else:
         logger.warning(f"No clone command found for {service} in {company_name}. Skipping cloning...")
@@ -348,21 +355,16 @@ def test():
 
 
 def autotest_all():
-    logger.info("Killing all currently running services")
-    kill_all_services()
-    logger.info(f"Running default Company 2 configuration")
-    run_company(2)
-    logger.info(f"Testing default Company 2 configuration")
-    test()
-    for backend in [1, 2]:
+    for backend in [2, 1]:
         if services['backend'] != backend:
             swap_service("backend")
-        for algs1 in [1, 2]:
+        for algs1 in [2, 1]:
             if services['algs1'] != algs1:
-                swap_service("backend")
-            for algs2 in [1, 2]:
+                swap_service("algs1")
+            for algs2 in [2, 1]:
                 if services['algs2'] != algs2:
                     swap_service("algs2")
+                logger.info(f"Running tests for company {backend} backend, company {algs1} algs1 and company {algs2} algs2...")
                 test()
 
     logger.info("Finished all combinations of Company 1 and 2 tests")
@@ -407,6 +409,7 @@ def handle_test(args):
 
 
 def handle_testall(args):
+    kill_all_services()
     autotest_all()
 
 
