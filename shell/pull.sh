@@ -1,16 +1,15 @@
 #!/bin/sh
 
-echo "Cloning..."
+echo "Pulling..."
 
 for company in "company2"
 do
-    mkdir -p "$company"
     for repo in "frontend" "backend" "algs1" "algs2"
     do
-        cmd=$(jq -r ".${company}.${repo}.clone" config.json)
+        cmd="git pull"
         
         if ! eval $cmd; then
-            echo "Failed to clone ${repo} of ${company} from command: ${cmd}"
+            echo "Failed to pull ${repo} of ${company} from command: ${cmd}"
             continue
         fi
 
@@ -22,5 +21,5 @@ do
     done
 done
 
-echo "Cloning Complete!"
+echo "Pulling Complete!"
 exit 0

@@ -1,7 +1,10 @@
 version: '3'
 services:
   integration:
-    build: .
+    build:
+      context: .
+      args:
+        NOCACHE: ${NOCACHE:-False}
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

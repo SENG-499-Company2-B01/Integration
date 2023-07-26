@@ -63,41 +63,49 @@ company2_backend_algs2 = {
 def write_env_file(env_file_path, env_variables):
     with open(env_file_path, "w") as f:
         for key in env_variables:
-            f.write(f'{key} = "{env_variables[key]}"\n')
+            f.write(f'{key}={env_variables[key]}\n')
 
 def set_frontend_env_variables():
     env_variables = {
-        "REACT_APP_BACKEND_URL" : "'http://host.docker.internal:8000'"
+        "REACT_APP_BACKEND_URL" : "http://localhost:8000"
     }
     write_env_file("company2/frontend/.env", env_variables)
 
 def set_company1_env_variables(algs1_link: str, algs2_link: str):
     env_variables = {
-        "DATABASE_URI" : "'postgresql+psycopg2://admin:password@db:5432/uvic'",
-        "APP_SETTINGS" : "'ProductionConfig'",
-        "FLASK_RUN_HOST" : "'0.0.0.0'",
-        "FLASK_APP" : "'app.py'",
+        "DATABASE_URI" : "postgresql+psycopg2://admin:password@db:5432/uvic",
+        "APP_SETTINGS" : "ProductionConfig",
+        "FLASK_RUN_HOST" : "0.0.0.0",
+        "FLASK_APP" : "app.py",
         "FLASK_DEBUG" : "1",
-        "APP_VERSION" : "'1.0.0'",
-        "ALG1_URLs" : f"'{algs1_link}'",
-        "ALG2_URLs" : f"'{algs2_link}'"
+        "APP_VERSION" : "1.0.0",
+        "ALG1_URLs" : f"{algs1_link}",
+        "ALG2_URLs" : f"{algs2_link}"
     }
     write_env_file("company1/backend/.env", env_variables)
 
 def set_company2_env_variables(algs1_link: str, algs2_link: str):
     env_variables = {
-        "ENVIRONMENT" : "'development'",
-        "MONGO_LOCAL_HOST" : "'10.9.0.3:27017'",
-        "MONGO_LOCAL_USERNAME" : "'admin'",
-        "MONGO_LOCAL_PASSWORD" : "'admin'",
-        "ADMIN_1" : "'rich.little'",
-        "ADMIN_2" : "'dan.mai'",
-        "JWT_SECRET" : "'secret'",
-        "API_HASH" : "'fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca'",
-        "ALGS1_API" : f"'{algs1_link}'",
-        "ALGS2_API" : f"'{algs2_link}'"
+        "ENVIRONMENT" : "development",
+        "MONGO_LOCAL_HOST" : "10.9.0.3:27017",
+        "MONGO_LOCAL_USERNAME" : "admin",
+        "MONGO_LOCAL_PASSWORD" : "admin",
+        "ADMIN_1" : "rich.little",
+        "ADMIN_2" : "dan.mai",
+        "JWT_SECRET" : "secret",
+        "API_HASH" : "fe80decbd03b2933f3d7eba3079e6b3e7c1bb2e3613f3671388c969fd6cd5aca",
+        "ALGS1_API" : f"{algs1_link}",
+        "ALGS2_API" : f"{algs2_link}"
     }
     write_env_file("company2/backend/.env", env_variables)
+
+def set_company2_algs1_env_variables():
+    env_variables = {
+        "DJANGO_MODE" : "dev",
+        "SECRET_KEY" : "4104c7d331cb642a222340cd5324b4f2",
+        "HOST_NAME" : "host.docker.internal"
+    }
+    write_env_file("company2/algs1/.env", env_variables)
 
 def set_company1_algs2_env_variables():
     env_variables = {
@@ -108,11 +116,11 @@ def set_company1_algs2_env_variables():
 
 def set_company2_algs2_env_variables():
     env_variables = {
-        "DJANGO_MODE" : "'dev'",
-        "SECRET_KEY" : "'4104c7d331cb642a222340cd5324b4f2'",
-        "HOST_IP" : "'127.0.0.1'",
-        "HOST_NAME" : "'www.example.com'",
-        "BACKEND_URL" : "'http://host.docker.internal:8000'"
+        "DJANGO_MODE" : "dev",
+        "SECRET_KEY" : "4104c7d331cb642a222340cd5324b4f2",
+        "HOST_IP" : "127.0.0.1",
+        "HOST_NAME" : "host.docker.internal",
+        "BACKEND_URL" : "http://host.docker.internal:8000"
     }
     write_env_file("company2/algs2/.env", env_variables)
 
@@ -251,9 +259,9 @@ def run_service(company: Company, service: Service):
 
 def run_services(service_companies: dict[Service, Company]):
     logger.info("Updating backend env variables...")
-    kill_service("backend")
+    kill_service(Service.backend)
     update_backend_env_variables(service_companies[Service.backend], service_companies[Service.algs1], service_companies[Service.algs2])
-    build_service({service_companies[Service.backend]}, Service.backend)
+    build_service(service_companies[Service.backend], Service.backend)
 
     logger.info("Starting containers...")
     for service, company in service_companies.items():
@@ -471,13 +479,19 @@ def print_help():
 
 
 def main():
-    # Clone and build all services, if necessary
+    # Clone all services, if necessary
     clone_all_services()
 
     # Init frontend env variable
     set_frontend_env_variables()
     set_company1_algs2_env_variables()
+    set_company2_algs1_env_variables()
     set_company2_algs2_env_variables()
+
+    # set backend env variables
+    # algs1 and algs2 are fixed in runtime
+    update_backend_env_variables(Company.company1, Company.company1, Company.company1)
+    update_backend_env_variables(Company.company2, Company.company2, Company.company2)
 
     # Build all services
     build_all()
