@@ -21,7 +21,7 @@ This will build and start the company 2 containers on your host machine.
 
 ## Full features
 
-TO access the full features of this repository, some additional setup is required.
+To access the full features of this repository, some additional setup is required.
 
 ### Dependancies
 

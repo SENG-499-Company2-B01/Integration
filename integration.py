@@ -5,7 +5,6 @@ import os
 import logging
 import subprocess
 import time
-import socket
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
