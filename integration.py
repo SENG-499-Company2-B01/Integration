@@ -5,6 +5,7 @@ import os
 import logging
 import subprocess
 import time
+import socket
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,23 +41,23 @@ services = {
 
 # Backend env variable constants
 company1_backend_algs1 = {
-    Company.company1 : "http://localhost:5001,http://localhost:5001",
-    Company.company2 : "http://localhost:8017,http://localhost:8017"
+    Company.company1 : "http://host.docker.internal:5001,http://host.docker.internal:5001",
+    Company.company2 : "http://host.docker.internal:8017,http://host.docker.internal:8017"
 }
 
 company1_backend_algs2 = {
-    Company.company1 : "http://localhost:8080,http://localhost:8080",
-    Company.company2 : "http://localhost:8001,http://localhost:8001"
+    Company.company1 : "http://host.docker.internal:8080,http://host.docker.internal:8080",
+    Company.company2 : "http://host.docker.internal:8001,http://host.docker.internal:8001"
 }
 
 company2_backend_algs1 = {
-    Company.company1 : "http://localhost:5001/generate",
-    Company.company2 : "http://localhost:8017/generate"
+    Company.company1 : "http://host.docker.internal:5001/generate",
+    Company.company2 : "http://host.docker.internal:8017/generate"
 }
 
 company2_backend_algs2 = {
-    Company.company1 : "http://localhost:8080/predict",
-    Company.company2 : "http://localhost:8001/predict"
+    Company.company1 : "http://host.docker.internal:8080/predict",
+    Company.company2 : "http://host.docker.internal:8001/predict"
 }
 
 def write_env_file(env_file_path, env_variables):
@@ -66,7 +67,7 @@ def write_env_file(env_file_path, env_variables):
 
 def set_frontend_env_variables():
     env_variables = {
-        "REACT_APP_BACKEND_URL" : "'http://localhost:8000'"
+        "REACT_APP_BACKEND_URL" : "'http://host.docker.internal:8000'"
     }
     write_env_file("company2/frontend/.env", env_variables)
 
@@ -101,7 +102,7 @@ def set_company2_env_variables(algs1_link: str, algs2_link: str):
 def set_company1_algs2_env_variables():
     env_variables = {
         "PORT": "8080",
-        "BACKEND_URL": "http://localhost:8000/schedules/prev"
+        "BACKEND_URL": "http://host.docker.internal:8000/schedules/prev"
     }
     write_env_file("company1/algs2/.env", env_variables)
 
@@ -111,7 +112,7 @@ def set_company2_algs2_env_variables():
         "SECRET_KEY" : "'4104c7d331cb642a222340cd5324b4f2'",
         "HOST_IP" : "'127.0.0.1'",
         "HOST_NAME" : "'www.example.com'",
-        "BACKEND_URL" : "'http://localhost:8000'"
+        "BACKEND_URL" : "'http://host.docker.internal:8000'"
     }
     write_env_file("company2/algs2/.env", env_variables)
 
