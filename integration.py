@@ -101,7 +101,7 @@ def set_company2_env_variables(algs1_link: str, algs2_link: str):
 def set_company2_algs1_env_variables():
     env_variables = {
         "DJANGO_MODE" : "dev",
-        "SECRET_KEY" : "4104c7d331cb642a222340cd5324b4f2",
+        "DJANGO_KEY" : "4104c7d331cb642a222340cd5324b4f2",
         "HOST_NAME" : "host.docker.internal"
     }
     write_env_file("company2/algs1/.env", env_variables)
