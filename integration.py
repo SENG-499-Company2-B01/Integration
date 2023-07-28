@@ -349,11 +349,11 @@ def clone_all_services():
             if not clone_service(company, service):
                 logger.error(f"Failed to clone {service.name} of {company.name}")
     
-    logger.info("Completed clonning all repositories...")
+    logger.info("Completed cloning all repositories...")
 
 
 def test():
-    logger.info("This has not been implemented yet")
+    execute_command("python ./test/test_ui_integration.py", SCRIPT_DIR)
 
 
 def autotest_all():
