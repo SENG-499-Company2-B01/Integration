@@ -21,7 +21,7 @@ This will build and start the company 2 containers on your host machine.
 
 ## Full features
 
-TO access the full features of this repository, some additional setup is required.
+To access the full features of this repository, some additional setup is required.
 
 ### Dependancies
 
@@ -46,9 +46,9 @@ To run the full features, run `python3 integration.py`.
 
 - `exit` - This command terminates all running containers and exits the program.
 
-- `test` - This command tests the currently running containers. Note: This feature has not been implemented yet.
+- `test` - This command tests the currently running containers using selenium.
 
-- `testall` - This command runs a full test suite. Note: This feature has not been implemented yet.
+- `testall` - This command runs a full test suite. It will automatically start company 2 frontend, and run the selenium tests on every combination of backend, algs1 and algs2 from company 1 and 2.
 
 - `help` - This command prints a list of available commands, their syntax, and a brief description of their function.
 

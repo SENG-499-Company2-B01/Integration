@@ -1,5 +1,8 @@
 FROM docker:dind
 
+ARG NOCACHE=False
+ENV NOCACHE=$NOCACHE
+
 RUN apk update && \
     apk add --no-cache git jq
 
@@ -12,7 +15,7 @@ RUN chmod 600 /root/.ssh/*
 WORKDIR /app
 COPY . .
 
-RUN chmod +x ./shell/clone.sh ./shell/build.sh ./shell/runfrom.sh ./shell/killall.sh
+RUN chmod +x ./shell/clone.sh ./shell/build.sh ./shell/runfrom.sh ./shell/killall.sh ./shell/pull.sh
 RUN ./shell/clone.sh
 
-CMD ./shell/build.sh && ./shell/runfrom.sh 2 2 2 2
+CMD ./shell/pull.sh && ./shell/build.sh $NOCACHE && ./shell/runfrom.sh 2 2 2 2
