@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import page
-import time
 
 import unittest
 
@@ -15,7 +14,7 @@ class ChromeTest(unittest.TestCase):
         options.add_argument('--disable-gpu') 
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.implicitly_wait(10)
-        cls.driver.get('https://company2-frontend.onrender.com/')
+        cls.driver.get('http://localhost:3000')
         cls.driver.fullscreen_window()
         return super().setUpClass()
     
@@ -41,7 +40,7 @@ class ChromeTest(unittest.TestCase):
         self.prof_landing_page.sign_out()
 
     def test_4_admin_login(self):
-        self.driver.get('https://company2-frontend.onrender.com/')
+        self.driver.get('http://localhost:3000')
         self.driver.fullscreen_window()
         self.login_page.login('Rich.Little', 'Rich.Little12345')
 

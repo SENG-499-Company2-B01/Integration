@@ -353,7 +353,7 @@ def clone_all_services():
 
 
 def test():
-    execute_command("python ./test/test.py", ".")
+    execute_command("python ./test/test_ui_integration.py", SCRIPT_DIR)
 
 
 def autotest_all():
