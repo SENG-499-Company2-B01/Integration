@@ -1,3 +1,5 @@
 .vscode
 company1/
 company2/
+__pycache__/
+
