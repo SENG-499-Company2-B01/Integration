@@ -42,6 +42,8 @@ To run the full features, run `python3 integration.py`.
 
 - `runfrom [Frontend] [Backend] [Algs1] [Algs2]` - This command runs modules from each given company. For each module ([Frontend], [Backend], [Algs1], [Algs2]), replace the placeholder with 1 or 2 to indicate which company's module to run from.
 
+- `runservice [Company] [Service]` - This command runs a given service from the given company. Company must be 1 or 2. Service must be one of "frontend", "backend", "algs1" or "algs2".
+
 - `swap [Service]` - This command kills a service and runs the same service from the other company. Service must be one of "frontend", "backend", "algs1" or "algs2".
 
 - `checkout [Company] [Service] [Branch]` - This command changes the branch of the given service. Company must be 1 or 2. Service must be one of "frontend", "backend", "algs1" or "algs2". Branch is the name of the new branch to checkout.

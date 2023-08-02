@@ -324,6 +324,7 @@ def swap_service(service: Service):
         backend_company = services[Service.backend]
         kill_service(Service.backend)
         update_backend_env_variables(backend_company, services[Service.algs1], services[Service.algs2])
+        build_service(backend_company, Service.backend)
         if not run_service(backend_company, Service.backend):
             logger.warning(f"Failed to start backend for {backend_company.name}")
             return False
@@ -417,6 +418,53 @@ def handle_runfrom(args):
     else:
         run_services({Service.frontend: Company(int(args[0])), Service.backend: Company(int(args[1])), Service.algs1: Company(int(args[2])), Service.algs2: Company(int(args[3]))})
 
+def handle_runservice(args):
+    if len(args) != 2:
+        logger.info("Usage: runservice [1 or 2] ['frontend' or 'backend' or 'algs1' or 'algs2']")
+        return
+    
+    try:
+        company = Company(int(args[0]))
+    except ValueError:
+        logger.error(f"Invalid company number. Please provide 1 or 2.")
+        return
+    
+    try:
+        service = Service[args[1]]
+    except KeyError:
+        logger.error(f"Unknown service: {args[1]}")
+        return
+    
+    if services[service] != Company.none:
+        logger.error(f"{service.name} is already running for {services[service].name}. Skipping...")
+        return
+    
+    if service == Service.backend:
+        # If the rest of the services are running, update backend env variables
+        if services[Service.frontend] != Company.none and services[Service.algs1] != Company.none and services[Service.algs2] != Company.none:
+            logger.info(f"Updating backend env variables...")
+            update_backend_env_variables(company, services[Service.algs1], services[Service.algs2])
+            build_service(company, Service.backend)
+            if not run_service(company, Service.backend):
+                logger.error(f"Failed to start backend for {company.name}")
+                return
+        update_backend_env_variables(company, services[Service.algs1], services[Service.algs2])
+    else:
+        if not run_service(company, service):
+            logger.warning(f"Failed to run {service.name} for {company.name}")
+            return
+        
+        # Change backend env variables for swapped service only if all services are running
+        if services[Service.frontend] != Company.none and services[Service.backend] != Company.none and services[Service.algs1] != Company.none and services[Service.algs2] != Company.none:
+            logger.info(f"Updating backend env variables for {service.name} to {company.name}...")
+            backend_company = services[Service.backend]
+            kill_service(Service.backend)
+            update_backend_env_variables(backend_company, services[Service.algs1], services[Service.algs2])
+            build_service(backend_company, Service.backend)
+            if not run_service(backend_company, Service.backend):
+                logger.warning(f"Failed to start backend for {backend_company.name}")
+                return
+        
 
 def handle_swap(args):
     if len(args) != 1:
@@ -489,6 +537,7 @@ def handle_help(args):
 COMMAND_HANDLERS = {
     'run': handle_run,
     'runfrom': handle_runfrom,
+    'runservice': handle_runservice,
     'swap': handle_swap,
     'checkout': handle_checkout,
     'kill': handle_kill,
@@ -525,6 +574,7 @@ def print_help():
     - help - Show this help message.
     - run [Company] - Runs all four services from a given company. Provide 1 or 2 for the company.
     - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs services from each given company. For each service, provide 1 or 2 to indicate which company to run from.
+    - runservice [Company] [Service] - Runs the given service from the given company. Provide 1 or 2 for Company. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to run.
     - swap [Service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
     - checkout [Company] [Service] [Branch] - Checkout the given branch for the given service. Provide 1 or 2 for Company. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to checkout. Provide the branch name.
     - kill [Servcie] - Kills the given service. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to kill.
