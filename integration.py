@@ -408,8 +408,21 @@ def handle_swap(args):
         return
     
     if not swap_service(service):
-        logger.warning(f"Failed to swap {service._name_}")
+        logger.warning(f"Failed to swap {service.name}")
 
+def handle_kill(args):
+    if len(args) != 1:
+        logger.info("Usage: kill 'frontend' or 'backend' or 'algs1' or 'algs2'")
+        return
+    
+    try:
+        service = Service[args[0]]
+    except KeyError:
+        logger.error(f"Unknown service: {args[0]}")
+        return
+    
+    if not kill_service(service):
+        logger.warning(f"Failed to kill {service.name}")
 
 def handle_killall(args):
     kill_all_services()
@@ -436,6 +449,7 @@ COMMAND_HANDLERS = {
     'run': handle_run,
     'runfrom': handle_runfrom,
     'swap': handle_swap,
+    'kill': handle_kill,
     'killall': handle_killall,
     'exit': handle_exit,
     'test': handle_test,
@@ -466,14 +480,15 @@ def parse_input(user_input):
 def print_help():
     logger.info("""
     Available commands:
+    - help - Show this help message.
     - run [Company] - Runs all four services from a given company. Provide 1 or 2 for the company.
     - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs services from each given company. For each service, provide 1 or 2 to indicate which company to run from.
-    - swap [service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
+    - swap [Service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
+    - kill [Servcie] - Kills the given service. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to kill.
     - killall - Terminate all running containers.
     - exit - Terminate all running containers and exit the program.
-    - test - Test the currently running containers. This has not been implemented yet.
-    - testall - Run full test suite. This has not been implemented yet.
-    - help - Show this help message.
+    - test - Test the currently running containers.
+    - testall - Run full test suite.
     """)
 
 
