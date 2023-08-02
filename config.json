@@ -5,28 +5,32 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["react_container"]
+            "containers": ["react_container"],
+            "defaultbranch": "main"
         },
         "backend": {
             "clone": "git clone git@github.com:seng499company1/backend.git company1/backend",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["backend-db-1", "backend-api-1"]
+            "containers": ["backend-db-1", "backend-api-1"],
+            "defaultbranch": "staging"
         },
         "algs1": {
             "clone": "git clone git@github.com:seng499company1/alg1-scheduler.git company1/algs1",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["algs1-alg1-scheduler-1"]
+            "containers": ["algs1-alg1-scheduler-1"],
+            "defaultbranch": "main"
         },
         "algs2": {
             "clone": "git clone git@github.com:seng499company1/alg2.git company1/algs2",
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["alg2-alg2-1"]
+            "containers": ["alg2-alg2-1"],
+            "defaultbranch": "main"
         }
     },
     "company2": {
@@ -36,7 +40,8 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["frontend_frontend_1"]
+            "containers": ["frontend_frontend_1"],
+            "defaultbranch": "dev"
         },
         "backend": {
             "clone": "git clone https://github.com/SENG-499-Company2-B01/Backend.git company2/backend",
@@ -44,7 +49,8 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["backend_backend_server_1", "backend_db_init_container_1", "backend_mongo_db_1"]
+            "containers": ["backend_backend_server_1", "backend_db_init_container_1", "backend_mongo_db_1"],
+            "defaultbranch": "dev"
         },
         "algs1": {
             "clone": "git clone https://github.com/SENG-499-Company2-B01/Algs1.git company2/algs1",
@@ -52,7 +58,8 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["algs1_algs1_1"]
+            "containers": ["algs1_algs1_1"],
+            "defaultbranch": "dev"
         },
         "algs2": {
             "clone": "git clone https://github.com/SENG-499-Company2-B01/Algs2.git company2/algs2",
@@ -60,7 +67,8 @@
             "build": "docker-compose build",
             "run": "docker-compose up -d",
             "kill": "docker-compose down",
-            "containers": ["algs2_algs2_1"]
+            "containers": ["algs2_algs2_1"],
+            "defaultbranch": "main"
         }
     }
 }

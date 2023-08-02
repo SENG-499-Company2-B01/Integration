@@ -330,9 +330,14 @@ def clone_service(company: Company, service: Service):
             logger.error(f"Failed to clone {service.name} of {company.name} from command: {clone_command}")
             return False
     else:
-        logger.info(f"{service.name} already exists in {company.name}. Pulling instead...")
+        logger.info(f"{service.name} already exists in {company.name}. Getting default branch...")
+        default_branch = config.get(company.name, {}).get(service.name, {}).get('defaultbranch')
+        logger.info(f"Pulling new changes for {service.name} in {company.name} on branch {default_branch}...")
+        if not execute_command(f"git checkout {default_branch}", repo_dir):
+            logger.error(f"Failed to checkout {default_branch} in {service.name} of {company.name}")
+            return False
         if not execute_command("git pull", repo_dir):
-            logger.error(f"Failed to pull {service.name} of {company.name} from command: {clone_command}")
+            logger.error(f"Failed to pull {service.name} of {company.name}")
             return False
     return True
 
