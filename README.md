@@ -44,15 +44,17 @@ To run the full features, run `python3 integration.py`.
 
 - `swap [Service]` - This command kills a service and runs the same service from the other company. Service must be one of "frontend", "backend", "algs1" or "algs2".
 
+- `checkout [Company] [Service] [Branch]` - This command changes the branch of the given service. Company must be 1 or 2. Service must be one of "frontend", "backend", "algs1" or "algs2". Branch is the name of the new branch to checkout.
+
+- `test` - This command tests the currently running containers using selenium.
+
+- `testall` - This command runs a full test suite. It will automatically start company 2 frontend, and run the selenium tests on every combination of backend, algs1 and algs2 from company 1 and 2.
+
 - `kill [Service]` - This command kills a service. Service must be one of "frontend", "backend", "algs1" or "algs2".
 
 - `killall` - This command terminates all running containers.
 
 - `exit` - This command terminates all running containers and exits the program.
-
-- `test` - This command tests the currently running containers using selenium.
-
-- `testall` - This command runs a full test suite. It will automatically start company 2 frontend, and run the selenium tests on every combination of backend, algs1 and algs2 from company 1 and 2.
 
 ### Selenium
 Selenium Webdriver is used to test the integration between our backend and the UI. Individual test cases can be found in the `/test/test_cases` directory, and they reference selenium page objects in `/test/page.py`.

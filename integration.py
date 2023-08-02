@@ -279,6 +279,23 @@ def run_company(company: Company):
 
     return True
 
+def checkout_branch(company: Company, service: Service, branch: str):
+    repo_dir = os.path.join(SCRIPT_DIR, company.name, service.name)
+    if not os.path.exists(repo_dir):
+        logger.warning(f"Could not find {service.name} in {company.name}. Skipping checkout...")
+        return False
+    
+    if not execute_command(f"git checkout {branch}", repo_dir):
+        logger.error(f"Failed to checkout {branch} in {service.name} of {company.name}")
+        return False
+    
+    if not execute_command("git pull", repo_dir):
+        logger.error(f"Failed to pull {service.name} of {company.name}")
+        return False
+    
+    logger.info(f"Successfully checked out {branch} in {service.name} of {company.name}")
+    return True
+
 def swap_service(service: Service):
     # The company currently running the service
     current_company = services[service]
@@ -330,9 +347,14 @@ def clone_service(company: Company, service: Service):
             logger.error(f"Failed to clone {service.name} of {company.name} from command: {clone_command}")
             return False
     else:
-        logger.info(f"{service.name} already exists in {company.name}. Pulling instead...")
+        logger.info(f"{service.name} already exists in {company.name}. Getting default branch...")
+        default_branch = config.get(company.name, {}).get(service.name, {}).get('defaultbranch')
+        logger.info(f"Pulling new changes for {service.name} in {company.name} on branch {default_branch}...")
+        if not execute_command(f"git checkout {default_branch}", repo_dir):
+            logger.error(f"Failed to checkout {default_branch} in {service.name} of {company.name}")
+            return False
         if not execute_command("git pull", repo_dir):
-            logger.error(f"Failed to pull {service.name} of {company.name} from command: {clone_command}")
+            logger.error(f"Failed to pull {service.name} of {company.name}")
             return False
     return True
 
@@ -410,6 +432,25 @@ def handle_swap(args):
     if not swap_service(service):
         logger.warning(f"Failed to swap {service.name}")
 
+def handle_checkout(args):
+    if len(args) != 3:
+        logger.info("Usage: checkout ['1' or '2'] ['frontend' or 'backend' or 'algs1' or 'algs2'] [branch name]")
+        return
+    
+    try:
+        company = Company(int(args[0]))
+    except ValueError:
+        logger.error(f"Invalid company number. Please provide 1 or 2.")
+        return
+    
+    try:
+        service = Service[args[1]]
+    except KeyError:
+        logger.error(f"Unknown service: {args[1]}")
+        return
+    
+    checkout_branch(company, service, args[2])
+
 def handle_kill(args):
     if len(args) != 1:
         logger.info("Usage: kill 'frontend' or 'backend' or 'algs1' or 'algs2'")
@@ -449,6 +490,7 @@ COMMAND_HANDLERS = {
     'run': handle_run,
     'runfrom': handle_runfrom,
     'swap': handle_swap,
+    'checkout': handle_checkout,
     'kill': handle_kill,
     'killall': handle_killall,
     'exit': handle_exit,
@@ -484,6 +526,7 @@ def print_help():
     - run [Company] - Runs all four services from a given company. Provide 1 or 2 for the company.
     - runfrom [Frontend] [Backend] [Algs1] [Algs2] - Runs services from each given company. For each service, provide 1 or 2 to indicate which company to run from.
     - swap [Service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
+    - checkout [Company] [Service] [Branch] - Checkout the given branch for the given service. Provide 1 or 2 for Company. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to checkout. Provide the branch name.
     - kill [Servcie] - Kills the given service. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to kill.
     - killall - Terminate all running containers.
     - exit - Terminate all running containers and exit the program.
