@@ -314,6 +314,13 @@ def swap_service(service: Service):
     # Stop the service for the current company
     if not kill_service(service):
         logger.info(f"Failed to kill {service.name} for {current_company.name}")
+    
+    if service == Service.backend:
+        # Change backend env variables for swapped service only if all services are running
+        if services[Service.frontend] != Company.none and services[Service.algs1] != Company.none and services[Service.algs2] != Company.none:
+            logger.info(f"Updating backend env variables for {service.name} to {next_company.name}...")
+            update_backend_env_variables(current_company, services[Service.algs1], services[Service.algs2])
+            build_service(current_company, Service.backend)
 
     # Start the service for the next company
     if not run_service(next_company, service):
@@ -324,16 +331,17 @@ def swap_service(service: Service):
     services[service] = next_company
     logger.info(f"Successfully swapped {service.name} to {next_company.name}")
 
-    # Change backend env variables for swapped service only if all services are running
-    if services[Service.frontend] != Company.none and services[Service.backend] != Company.none and services[Service.algs1] != Company.none and services[Service.algs2] != Company.none:
-        logger.info(f"Updating backend env variables for {service.name} to {next_company.name}...")
-        backend_company = services[Service.backend]
-        kill_service(Service.backend)
-        update_backend_env_variables(backend_company, services[Service.algs1], services[Service.algs2])
-        build_service(backend_company, Service.backend)
-        if not run_service(backend_company, Service.backend):
-            logger.warning(f"Failed to start backend for {backend_company.name}")
-            return False
+    if service != Service.backend:
+        # Change backend env variables for swapped service only if all services are running
+        if services[Service.frontend] != Company.none and services[Service.backend] != Company.none and services[Service.algs1] != Company.none and services[Service.algs2] != Company.none:
+            logger.info(f"Updating backend env variables for {service.name} to {next_company.name}...")
+            backend_company = services[Service.backend]
+            kill_service(Service.backend)
+            update_backend_env_variables(backend_company, services[Service.algs1], services[Service.algs2])
+            build_service(backend_company, Service.backend)
+            if not run_service(backend_company, Service.backend):
+                logger.warning(f"Failed to start backend for {backend_company.name}")
+                return False
 
     return True
 
