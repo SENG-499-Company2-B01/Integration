@@ -50,8 +50,8 @@ company1_backend_algs2 = {
 }
 
 company2_backend_algs1 = {
-    Company.company1 : "http://host.docker.internal:5001/generate",
-    Company.company2 : "http://host.docker.internal:8017/generate"
+    Company.company1 : "http://host.docker.internal:5001/schedule",
+    Company.company2 : "http://host.docker.internal:8017/schedule"
 }
 
 company2_backend_algs2 = {
@@ -166,23 +166,25 @@ def build_service(company: Company, service: Service):
     config = load_config()
     if config is None:
         logger.error("No config found. Aborting build process.")
-        return
+        return False
 
     build_command = config.get(company.name, {}).get(service.name, {}).get('build', None)
     if build_command is None:
         logger.warning(f"No build command found for {service.name} in {company.name}. Skipping build process.")
-        return
+        return False
 
     repo_dir = os.path.join(SCRIPT_DIR, company.name, service.name)
     if not os.path.exists(repo_dir):
         logger.warning(f"Could not find {service.name} in {company.name}. Skipping build process.")
-        return
+        return False
 
     # Execute build command and get the return code
     if execute_command(build_command, cwd=repo_dir):
         logger.info(f"Successfully built {service.name} in {company.name}")
     else:
         logger.error(f"Failed to build {service.name} in {company.name}")
+        return False
+    return True
 
 
 def build_all():
@@ -293,6 +295,10 @@ def checkout_branch(company: Company, service: Service, branch: str):
         logger.error(f"Failed to pull {service.name} of {company.name}")
         return False
     
+    if not build_service(company, service):
+        logger.error(f"Failed to build {service.name} of {company.name}")
+        return False
+    
     logger.info(f"Successfully checked out {branch} in {service.name} of {company.name}")
     return True
 
@@ -347,16 +353,16 @@ def clone_service(company: Company, service: Service):
         if not execute_command(clone_command, SCRIPT_DIR):
             logger.error(f"Failed to clone {service.name} of {company.name} from command: {clone_command}")
             return False
-    else:
-        logger.info(f"{service.name} already exists in {company.name}. Getting default branch...")
-        default_branch = config.get(company.name, {}).get(service.name, {}).get('defaultbranch')
-        logger.info(f"Pulling new changes for {service.name} in {company.name} on branch {default_branch}...")
-        if not execute_command(f"git checkout {default_branch}", repo_dir):
-            logger.error(f"Failed to checkout {default_branch} in {service.name} of {company.name}")
-            return False
-        if not execute_command("git pull", repo_dir):
-            logger.error(f"Failed to pull {service.name} of {company.name}")
-            return False
+    
+    # Pull new changes
+    default_branch = config.get(company.name, {}).get(service.name, {}).get('defaultbranch')
+    logger.info(f"Pulling new changes for {service.name} in {company.name} on branch {default_branch}...")
+    if not execute_command(f"git checkout {default_branch}", repo_dir):
+        logger.error(f"Failed to checkout {default_branch} in {service.name} of {company.name}")
+        return False
+    if not execute_command("git pull", repo_dir):
+        logger.error(f"Failed to pull {service.name} of {company.name}")
+        return False
     return True
 
 
@@ -445,10 +451,9 @@ def handle_runservice(args):
             logger.info(f"Updating backend env variables...")
             update_backend_env_variables(company, services[Service.algs1], services[Service.algs2])
             build_service(company, Service.backend)
-            if not run_service(company, Service.backend):
-                logger.error(f"Failed to start backend for {company.name}")
-                return
-        update_backend_env_variables(company, services[Service.algs1], services[Service.algs2])
+        if not run_service(company, Service.backend):
+            logger.error(f"Failed to start backend for {company.name}")
+            return
     else:
         if not run_service(company, service):
             logger.warning(f"Failed to run {service.name} for {company.name}")
@@ -577,7 +582,7 @@ def print_help():
     - runservice [Company] [Service] - Runs the given service from the given company. Provide 1 or 2 for Company. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to run.
     - swap [Service] - Swaps the running service from one company to the other. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to swap.
     - checkout [Company] [Service] [Branch] - Checkout the given branch for the given service. Provide 1 or 2 for Company. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to checkout. Provide the branch name.
-    - kill [Servcie] - Kills the given service. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to kill.
+    - kill [Service] - Kills the given service. Provide 'frontend' or 'backend' or 'algs1' or 'algs2' to indicate which service to kill.
     - killall - Terminate all running containers.
     - exit - Terminate all running containers and exit the program.
     - test - Test the currently running containers.
